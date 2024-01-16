@@ -1,0 +1,7 @@
+{
+  "[python]": {
+    "editor.defaultFormatter": "ms-python.autopep8"
+  },
+  "python.formatting.provider": "none",
+  "C_Cpp.default.compilerPath": "c:\\Users\\USER\\Desktop\\My Project\\python\\STMA Systems\\app.py"
+}

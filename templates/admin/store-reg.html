@@ -1,0 +1,18 @@
+{% extends '/admin/base.html' %} {% block heading %} Stores {% endblock %} {%
+block content %}
+<div class="reg-selector">
+  <div class="reg">
+    <p>Ternant.</p>
+    <a class="green" href="{{url_for('admin_add_stores')}}"
+      >Click here to get form</a
+    >
+  </div>
+
+  <div class="reg">
+    <p>Occupant.</p>
+    <a class="green" href="{{url_for('admin_add_stores_both')}}"
+      >Click here to get form</a
+    >
+  </div>
+</div>
+{% endblock %}

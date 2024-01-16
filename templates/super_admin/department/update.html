@@ -1,0 +1,46 @@
+{% extends '/super_admin/base.html' %}
+{% block heading %} Departments {% endblock %}
+{% block content %}
+<div class="content-container">
+  <div class="head">
+    <h1>Department Registration</h1>
+  </div>
+  <form action="{{ url_for('update_department', department_name=department.department_name) }}" method="post">
+    <div class="store-detail">
+      <h2>Department Detail</h2>
+      <div>
+        <div class="details-input">
+          <label for="department">Department Name <span class="hash">*</span></label>
+          <input type="text" name="department" id="department" placeholder="Department" value="{{department.department_name}}" required />
+        </div>
+      </div>
+      <div>
+        <div class="details-input">
+          <label for="officer">Officer Incharge <span class="hash">*</span></label>
+          <input type="text" name="officer" id="officer" placeholder="Officer Incharge" value="{{department.officer}}" required />
+        </div>
+      </div>
+    </div>
+
+    <div class="store-detail">
+        <h2>Unit Form Detail</h2>
+        {% if units %}{% for unit in units %}
+        <div>
+          <div class="details-input">
+            <label for="unit">Unit Name <span class="hash">*</span></label>
+            <input type="text" name="unit" id="unit" placeholder="Unit" value="{{unit.unit}}" required />
+          </div>
+        </div>
+        {% endfor %} {% endif %}
+      </div>
+    
+    
+    <div class="input-submit">
+      <input type="submit" value="Add">
+    </div>
+  </form>
+</div>
+</div>
+
+
+{% endblock %}

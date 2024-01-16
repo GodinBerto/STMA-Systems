@@ -1,0 +1,45 @@
+{% extends '/data_entry/stores/base.html' %} {% block heading %} Store Rent {%
+endblock %} {% block content %}
+
+<!----------------------Search------------------------>
+<div class="search-container">
+  <form class="search" action="{{url_for ('staff_search')}}" method="GET">
+    <input type="search" name="search" id="search" placeholder="Search" />
+    <input type="submit" value="Search" />
+  </form>
+</div>
+
+<!-- ================ Order Details List ================= -->
+<div class="details">
+  <div class="recentOrders">
+    <div class="cardHeader">
+      <h2>Stores</h2>
+      <a href="{{url_for ('staff_store_reg')}}" class="btn">Add Stores</a>
+    </div>
+
+    <table>
+      <thead>
+        <tr>
+          <td>ID</td>
+          <td>Store Number</td>
+          <td>Store Size</td>
+          <td>Sector</td>
+          <td>Nature Of Business</td>
+        </tr>
+      </thead>
+
+      <tbody>
+        {% for store in stores %}
+        <tr>
+          <td>{{store.id}}</td>
+          <td>{{store.store_number}}</td>
+          <td>{{store.store_size}}</td>
+          <td>{{store.sector}}</td>
+          <td>{{store.business}}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

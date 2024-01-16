@@ -1,0 +1,133 @@
+{% extends '/super_admin/base.html' %} {% block heading %} Dashboard {% endblock
+%} {% block content %}
+<!-- ======================= Cards ================== -->
+<div class="cardBox">
+  <a class="card" href="{{url_for('stores')}}">
+    <div>
+      <div class="numbers">{{count_stores}}</div>
+      <div class="cardName">Stores Rgeistered</div>
+    </div>
+
+    <div class="iconBx">
+      <ion-icon name="storefront-outline"></ion-icon>
+    </div>
+  </a>
+
+  <a class="card" href="{{url_for('staff')}}">
+    <div>
+      <div class="numbers">{{count_staff}}</div>
+      <div class="cardName">Staffs Rgeistered</div>
+    </div>
+
+    <div class="iconBx">
+      <ion-icon name="person-circle-outline"></ion-icon>
+    </div>
+  </a>
+
+  <a class="card" href="{{url_for('stores')}}">
+    <div>
+      <div class="numbers">Ghs {{total_rent}}</div>
+      <div class="cardName">Total Rent Recieved</div>
+    </div>
+
+    <div class="iconBx">
+      <ion-icon name="cash-outline"></ion-icon>
+    </div>
+  </a>
+
+  <a class="card" href="{{url_for('asset')}}">
+    <div>
+      <div class="numbers">{{asset_count}}</div>
+      <div class="cardName">Total Asset Registered</div>
+    </div>
+
+    <div class="iconBx">
+      <ion-icon name="briefcase-outline"></ion-icon>
+    </div>
+  </a>
+
+  <a class="card" href="{{url_for('asset')}}">
+    <div>
+      <div class="numbers">{{item_count}}</div>
+      <div class="cardName">Total Items Registered</div>
+    </div>
+
+    <div class="iconBx">
+      <ion-icon name="file-tray-stacked-outline"></ion-icon>
+    </div>
+  </a>
+
+  <a class="card" href="{{url_for('department')}}">
+    <div>
+      <div class="numbers">{{department_count}}</div>
+      <div class="cardName">Total Department Registered</div>
+    </div>
+
+    <div class="iconBx">
+      <ion-icon name="cube-outline"></ion-icon>
+    </div>
+  </a>
+</div>
+
+<!-- ================ Order Details List ================= -->
+<div class="details_table">
+  <div class="recentOrders">
+    <div class="cardHeader">
+      <h2>Recent Stores Added</h2>
+      <a href="{{url_for('stores')}}" class="btn">View All</a>
+    </div>
+
+    <table>
+      <thead>
+        <tr>
+          <td>Id</td>
+          <td>Store Number</td>
+          <td>Store Size</td>
+          <td>Rent</td>
+          <td>Nature of Business</td>
+        </tr>
+      </thead>
+
+      <tbody>
+        {% for store in stores %}
+        <tr>
+          <td>{{store.id}}</td>
+          <td>{{store.store_number}}</td>
+          <td>{{store.store_size}}</td>
+          <td>{{store.rent}}</td>
+          <!-- Add this line for the new column -->
+          <td>{{store.business}}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <div class="recentOrders">
+    <div class="cardHeader">
+      <h2>Recent Department Added</h2>
+      <a href="{{url_for('department')}}" class="btn">View All</a>
+    </div>
+
+    <table>
+      <thead>
+        <tr>
+          <td>Id</td>
+          <td>Department</td>
+          <td>Officer Incharge</td>
+        </tr>
+      </thead>
+
+      <tbody>
+        {% for department in department_list %}
+        <tr>
+          <td>{{department.id}}</td>
+          <td>{{department.department_name}}</td>
+          <td>{{department.officer}}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

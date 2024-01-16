@@ -1,0 +1,44 @@
+{% extends '/super_admin/base.html' %} {% block heading %} Staff {% endblock %}
+{% block content %}
+<div class="content-container">
+  <h1>Staff Details</h1>
+  <div class="all-container">
+    <div class="details-container">
+      <div class="titles">
+        <h2></h2>
+        <h2>Staff Id:{{staff.id}}</h2>
+      </div>
+      <div class="content-text">
+        <h3>Full Name:</h3>
+        <p>{{ staff.username }}</p>
+      </div>
+      <div class="content-text">
+        <h3>Tel Number:</h3>
+        <p>{{ staff.phone_number }}</p>
+      </div>
+      <div class="content-text">
+        <h3>Gender:</h3>
+        <p>{{ staff.gender }}</p>
+      </div>
+      <div class="content-text">
+        <h3>Role:</h3>
+        <p>{{staff.role}}</p>
+      </div>
+      {% if staff.role == 'DATA ENTRY' %}
+      <div class="content-text">
+        <h3>Access:</h3>
+        <p>{{staff.access}}</p>
+      </div>
+      {% endif %}
+      <div class="content-text">
+        <h3>Email:</h3>
+        <p>{{staff.email}}</p>
+      </div>
+    </div>
+  </div>
+  <div class="actions">
+    <a class="green" href="{{url_for('back')}}">Back</a>
+    <a class="blue" href="{{url_for('edit_staff', staff_id=staff.id)}}">Edit</a>
+  </div>
+</div>
+{% endblock %}

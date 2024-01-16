@@ -1,0 +1,57 @@
+{% extends '/super_admin/base.html' %} {% block heading %} Departments {%
+endblock %} {% block content %}
+
+<!----------------------Search------------------------>
+<div class="search-container">
+  <form class="search" action="{{url_for ('department_search')}}" method="GET">
+    <input type="search" name="search" id="search" placeholder="Search" />
+    <input type="submit" value="Search" />
+  </form>
+</div>
+
+<!-- ================ Order Details List ================= -->
+<div class="details">
+  <div class="recentOrders">
+    <div class="cardHeader">
+      <h2>Departments</h2>
+      <a href="{{url_for ('choose')}}" class="btn">Add Department / Unit</a>
+    </div>
+
+    <table>
+      <thead>
+        <tr>
+          <td>ID</td>
+          <td>Department Name</td>
+          <td>Officer Incharge</td>
+          <td>Action</td>
+        </tr>
+      </thead>
+
+      <tbody>
+        {% for department in departments %}
+        <tr>
+          <td>{{department.id}}</td>
+          <td>{{department.department_name}}</td>
+          <td>{{department.officer}}</td>
+          <td class="action">
+            <a
+              href="{{ url_for('more_department', department_name=department.department_name) }}"
+              class="btn"
+              >Details</a
+            >
+            <a
+              href="{{ url_for('delete_department', department_name=department.department_name) }}"
+              class="delete"
+              ><ion-icon name="close-outline"></ion-icon
+            ></a>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+<div class="export-container">
+  <a href="#" class="export">Export to Excel</a>
+</div>
+{% endblock %}

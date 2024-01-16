@@ -1,0 +1,48 @@
+{% extends '/data_entry/artisans/base.html' %} {% block heading %} Artisans {%
+endblock %} {% block content %}
+
+<!----------------------Search------------------------>
+<div class="search-container">
+  <form
+    class="search"
+    action="{{url_for ('staff_artisan_search')}}"
+    method="GET">
+    <input type="search" name="search" id="search" placeholder="Search" />
+    <input type="submit" value="Search" />
+  </form>
+</div>
+
+<!-- ================ Order Details List ================= -->
+<div class="details">
+  <div class="recentOrders">
+    <div class="cardHeader">
+      <h2>Artisans</h2>
+      <a href="{{url_for ('staff_add_artisan')}}" class="btn">Add Artisan</a>
+    </div>
+
+    <table>
+      <thead>
+        <tr>
+          <td>ID</td>
+          <td>Artisan Name</td>
+          <td>Profession</td>
+          <td>Tel Number</td>
+          <td>Date Registered</td>
+        </tr>
+      </thead>
+
+      <tbody>
+        {% for artisans in artisan %}
+        <tr>
+          <td>{{artisans.id}}</td>
+          <td>{{artisans.name}}</td>
+          <td>{{artisans.profession}}</td>
+          <td>{{artisans.phone_number}}</td>
+          <td>{{artisans.date_registered}}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

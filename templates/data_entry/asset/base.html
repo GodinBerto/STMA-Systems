@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='css/styles.css') }}" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&display=swap"
+      rel="stylesheet" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css"
+      integrity="sha512-z3gLpd7yknf1YoNbCzqRKc4qyor8gaKU1qmn+CShxbuBusANI9QpRohGBreCFkKxLhei6S9CQXFEbbKuqLg0DA=="
+      crossorigin="anonymous"
+      referrerpolicy="no-referrer" />
+    <link
+      rel="icon"
+      href="{{ url_for('static', filename='images/favicon.ico') }}"
+      type="image/x-icon" />
+    <title>STMA</title>
+  </head>
+
+  <body>
+    <!-- =============== Navigation ================ -->
+    <div class="container">
+      <div class="navigation">
+        <ul>
+          <div class="navbar">
+            <div class="links-container">
+              <div class="logo">
+                <li>
+                  <a href="#">
+                    <span class="icon">
+                      <img
+                        src="{{ url_for('static', filename='images/STMA Logo.jpg')}}"
+                        alt=""
+                        class="logo-stma" />
+                    </span>
+                  </a>
+                </li>
+              </div>
+              <div class="user">
+                <span class="icon"
+                  ><img
+                    src="{{ url_for('static', filename='images/STMA Logo.jpg')}}"
+                    alt=""
+                    class="user-img" />
+                </span>
+                <div class="user-content">
+                  <p class="bold">{{username}}</p>
+                  <p>{{role}}</p>
+                </div>
+              </div>
+
+              <div class="linkss">
+                <li>
+                  <a href="{{url_for('staff_asset')}}">
+                    <span class="icon">
+                      <ion-icon name="briefcase-outline"></ion-icon>
+                    </span>
+                    <span class="title">Assets</span>
+                  </a>
+                </li>
+              </div>
+            </div>
+
+            <div class="logout">
+              <li>
+                <a href="{{ url_for('logout') }}">
+                  <span class="icon">
+                    <ion-icon name="log-out-outline"></ion-icon>
+                  </span>
+                  <span class="title">Sign Out</span>
+                </a>
+              </li>
+            </div>
+          </div>
+        </ul>
+      </div>
+
+      <!-- ========================= Main ==================== -->
+      <div class="main">
+        <div class="topbar">
+          <div class="toggle">
+            <ion-icon name="menu-outline"></ion-icon>
+          </div>
+
+          <div class="heading">
+            <h1>{% block heading %} {% endblock %}</h1>
+          </div>
+        </div>
+
+        <!-------------------- Flash Message ------------------------->
+        {% with messages = get_flashed_messages() %} {% if messages %}
+        <ul class="flash-messages">
+          {% for message in messages %}
+          <li>{{ message }}</li>
+          <button
+            class="close-btn"
+            onclick="this.parentElement.style.display='none'">
+            <i class="fa-solid fa-xmark"></i>
+          </button>
+          {% endfor %}
+        </ul>
+        {% endif %} {% endwith %} {% block content %} {% endblock %}
+      </div>
+    </div>
+
+    <!-- =========== Scripts =========  -->
+    <script>
+      // add hovered class to selected list item
+      let list = document.querySelectorAll(".navigation li");
+
+      function activeLink() {
+        list.forEach((item) => {
+          item.classList.remove("hovered");
+        });
+        this.classList.add("hovered");
+      }
+
+      list.forEach((item) => item.addEventListener("mouseover", activeLink));
+
+      // Menu Toggle
+      let toggle = document.querySelector(".toggle");
+      let navigation = document.querySelector(".navigation");
+      let main = document.querySelector(".main");
+      let topbar = document.querySelector(".topbar");
+      let user = document.querySelector(".user-img");
+      let user_content = document.querySelector(".user-content");
+      let user_profile = document.querySelector(".user");
+
+      toggle.onclick = function () {
+        navigation.classList.toggle("active");
+        main.classList.toggle("active");
+        topbar.classList.toggle("active");
+        user.classList.toggle("active");
+        user_content.classList.toggle("active");
+        user_profile.classList.toggle("active");
+      };
+    </script>
+
+    <!-- ====== ionicons ======= -->
+    <script
+      type="module"
+      src="https://unpkg.com/ionicons@5.5.2/dist/ionicons/ionicons.esm.js"></script>
+    <script
+      nomodule
+      src="https://unpkg.com/ionicons@5.5.2/dist/ionicons/ionicons.js"></script>
+  </body>
+</html>

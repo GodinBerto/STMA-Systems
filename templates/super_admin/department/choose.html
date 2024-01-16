@@ -1,0 +1,14 @@
+{% extends '/super_admin/base.html' %} {% block heading %} Stores {% endblock %}
+{% block content %}
+<div class="reg-selector">
+  <div class="reg">
+    <p>Register Department.</p>
+    <a class="green" href="{{url_for('form1')}}">Click here to get form</a>
+  </div>
+
+  <div class="reg">
+    <p>Register Unit</p>
+    <a class="green" href="{{url_for('form2')}}">Click here to get form</a>
+  </div>
+</div>
+{% endblock %}

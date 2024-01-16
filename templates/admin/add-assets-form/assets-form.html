@@ -1,0 +1,180 @@
+{% extends '/admin/base.html' %}
+{% block heading %} Assets {% endblock %}
+{% block content %}
+<div class="content-container">
+  <div class="head">
+    <h1>Asset Registration</h1>
+  </div>
+  <form action="{{ url_for('admin_asset_add') }}" method="post">
+    <div class="store-detail">
+      <h2>Asset Detail</h2>
+      <div>
+
+        <div class="details-input" required>
+            <label>Department Name <span class="hash">*</span></label>
+            <select name="department" id="department" required>
+              <option value="" selected></option>
+              {% for department in departments %}
+              <option value="{{ department }}">{{ department }}</option>
+              {% endfor %}
+            </select>
+          </div>
+  
+          <div class="details-input" required>
+            <label>Unit Name <span class="hash">*</span></label>
+            <select name="unit" id="unit" required>
+                <option value="" selected></option>
+                {% for unit in units %}
+                <option value="{{ unit }}">{{ unit }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="details-input" required>
+          <label>Device <span class="hash">*</span></label>
+          <select name="device" id="device" required>
+            <option value="" selected></option>
+            <option value="Desktop Computer">Desktop Computer</option>
+            <option value="Laptop">Laptop</option>
+            <option value="Printer">Printer</option>
+            <option value="Photocopier">Photocopier</option>
+            <option value="Universal Power Supply (UPS)">Universal Power Supply (UPS)</option>
+            <option value="Stabilizers">Stabilizers</option>
+            <option value="Switch">Switch</option>
+            <option value="Camera">Camera</option>
+            <option value="Projector">Projector</option>
+          </select>
+        </div>
+
+        <div id="dynamic-form" class="dynamic"></div>
+
+        <div class="details-input">
+            <label for="division">Division <span class="hash">*</span></label>
+            <input type="text" name="division" id="division" placeholder="Division" required />
+        </div>
+
+        <div class="details-input">
+            <label for="date_purchased">Date Purchased <span class="hash">*</span></label>
+            <input type="date" name="date_purchased" id="date_purchased" placeholder="Date Purchased" required />
+        </div>
+
+        <div class="details-input">
+            <label for="officer">Officer Incharge <span class="hash">*</span></label>
+            <input type="text" name="officer" id="officer" placeholder="Officer Incharge" required />
+        </div>
+      </div>
+    </div>
+    <div class="store-detail">
+      <h2>Staff</h2>
+      <div class="details-input">
+        <label for="staff">Staff Name:</label>
+        <input type="text" name="staff" id="staff" placeholder="Staff Name" value="{{ username }}" disabled required />
+        <input type="hidden" name="staff" value="{{ username }}" />
+      </div>
+    </div>
+    <div class="input-submit">
+      <input type="submit" value="Add">
+    </div>
+  </form>
+</div>
+</div>
+<script>
+  const deviceSelect = document.getElementById("device");
+  const dynamicFormContainer = document.getElementById("dynamic-form");
+
+  deviceSelect.addEventListener("change", () => {
+    const selectedDevice = deviceSelect.value;
+    dynamicFormContainer.innerHTML = ""; // Clear any previous form
+
+    if (selectedDevice === "Printer" || selectedDevice === "Photocopier") {
+      // Generate the printer or photocopier form
+      dynamicFormContainer.innerHTML = `
+                <h2>Device Detail</h2>
+                <div class="details-input">
+                    <label for="brand">Brand <span class="hash">*</span></label>
+                    <input type="text" name="brand" id="brand" placeholder="Brand" required>
+                </div>
+                <div class="details-input">
+                    <label for="serial_number">Serial Number <span class="hash">*</span></label>
+                    <input type="text" name="serial_number" id="serial_number" placeholder="Serial Number" required>
+                </div>
+                <div class="details-input">
+                    <label for="embosenuit">Embosenuit Number <span class="hash">*</span></label>
+                    <input type="text" name="embosenuit" id="embosenuit" placeholder="Embosenuit Number" required>
+                </div>
+                <div class="details-input">
+                    <label for="status">Status <span class="hash">*</span></label>
+                    <select name="status" id="status" required>
+                        <option value="" selected></option>
+                        <option value="Active">Active</option>
+                        <option value="Not Active">Not Active</option>
+                      </select>
+                </div>
+                <div class="details-input">
+                    <label for="toner_type">Type Of Toner <span class="hash">*</span></label>
+                    <input type="text" name="toner_type" id="toner_type" placeholder="Type Of Toner" required />
+                </div>
+              `;
+    } else if (
+      selectedDevice === "Universal Power Supply (UPS)" ||
+      selectedDevice === "Stabilizers" ||
+      selectedDevice === "Switch"
+    ) {
+      // Generate a form for other devices if needed
+      // Add code to generate the form for other devices here
+      dynamicFormContainer.innerHTML = `
+                <h2>Device Detail</h2>
+                <div class="details-input">
+                    <label for="brand">Brand <span class="hash">*</span></label>
+                    <input type="text" name="brand" id="brand" placeholder="Brand" required>
+                </div>
+                <div class="details-input">
+                    <label for="serial_number">Serial Number <span class="hash">*</span></label>
+                    <input type="text" name="serial_number" id="serial_number" placeholder="Serial Number" required>
+                </div>
+                <div class="details-input">
+                    <label for="embosenuit">Embosenuit Number <span class="hash">*</span></label>
+                    <input type="text" name="embosenuit" id="embosenuit" placeholder="Embosenuit Number" required>
+                </div>
+                <div class="details-input">
+                    <label for="status">Status <span class="hash">*</span></label>
+                    <select name="status" id="status" required>
+                        <option value="" selected></option>
+                        <option value="Active">Active</option>
+                        <option value="Not Active">Not Active</option>
+                        </select>
+                </div>
+                <div class="details-input">
+                    <label for="device_capacity">Capacity <span class="hash">*</span></label>
+                    <input type="text" name="device_capacity" id="capacity" placeholder="Capacity" required>
+                </div>
+              `;
+    } else {
+        dynamicFormContainer.innerHTML = `
+        <h2>Device Detail</h2>
+        <div class="details-input">
+            <label for="brand">Brand <span class="hash">*</span></label>
+            <input type="text" name="brand" id="brand" placeholder="Brand" required>
+        </div>
+        <div class="details-input">
+            <label for="serial_number">Serial Number <span class="hash">*</span></label>
+            <input type="text" name="serial_number" id="serial_number" placeholder="Serial Number" required>
+        </div>
+        <div class="details-input">
+            <label for="embosenuit">Embosenuit Number <span class="hash">*</span></label>
+            <input type="text" name="embosenuit" id="embosenuit" placeholder="Embosenuit Number" required>
+        </div>
+        <div class="details-input">
+            <label for="status">Status <span class="hash">*</span></label>
+            <select name="status" id="status" required>
+                <option value="" selected></option>
+                <option value="Active">Active</option>
+                <option value="Not Active">Not Active</option>
+                </select>
+        </div>
+      `;
+    }
+  });
+
+</script>
+{% endblock %}

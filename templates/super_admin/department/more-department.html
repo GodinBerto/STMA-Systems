@@ -1,0 +1,40 @@
+{% extends '/super_admin/base.html' %} {% block heading %} Departments {%
+endblock %} {% block content %}
+<div class="content-container">
+  <h1>Full Details</h1>
+  <div class="all-container">
+    <div class="details-container">
+      <div class="titles">
+        <h2>Department Details</h2>
+        <h2>Department Id: {{ department.id }}</h2>
+      </div>
+      <div class="content-text">
+        <h3>Department Name:</h3>
+        <p>{{ department.department_name }}</p>
+      </div>
+      <div class="content-text">
+        <h3>Officer Incharge:</h3>
+        <p>{{ department.officer }}</p>
+      </div>
+
+      <div class="titles">
+        <h2>Unit Details</h2>
+      </div>
+      {% if units %} {% for unit in units %}
+      <div class="content-text">
+        <h3>Unit:</h3>
+        <p>{{ unit.unit }}</p>
+      </div>
+      {% endfor %} {% endif %}
+    </div>
+    <div class="actions">
+      <a class="green" href="{{ url_for('back') }}">Back</a>
+      <a
+        class="blue"
+        href="{{ url_for('update_department', department_name=department.department_name) }}"
+        >Edit</a
+      >
+    </div>
+  </div>
+</div>
+{% endblock %}

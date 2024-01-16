@@ -1,0 +1,59 @@
+{% extends '/super_admin/base.html' %} {% block heading %} Stores Management {%
+endblock %} {% block content %}
+
+<!----------------------Search------------------------>
+<div class="search-container">
+  <form class="search" action="{{url_for ('sms_search')}}" method="GET">
+    <input type="search" name="search" id="search" placeholder="Search" />
+    <input type="submit" value="Search" />
+  </form>
+</div>
+
+<!-- ================ Order Details List ================= -->
+<div class="details">
+  <div class="recentOrders">
+    <div class="cardHeader">
+      <h2>Stores Management</h2>
+      <a href="{{url_for ('sms_add')}}" class="btn">Add Item</a>
+    </div>
+
+    <table>
+      <thead>
+        <tr>
+          <td>ID</td>
+          <td>Item Purchased</td>
+          <td>Item S/N</td>
+          <td>Quantity</td>
+          <td>Date Recieved</td>
+          <td>Action</td>
+        </tr>
+      </thead>
+
+      <tbody>
+        {% for item in sms %}
+        <tr>
+          <td>{{item.id}}</td>
+          <td>{{item.item}}</td>
+          <td>{{item.serial_number}}</td>
+          <td>{{item.quantity}}</td>
+          <td>{{item.date_recieved}}</td>
+          <td class="action">
+            <a href="{{ url_for('more_sms', id=item.id) }}" class="btn"
+              >Details</a
+            >
+            <a href="{{ url_for('sms_delete', id=item.id) }}" class="delete"
+              ><ion-icon name="close-outline"></ion-icon
+            ></a>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+<div class="export-container">
+  <a href="{{url_for('export_excel_stores')}}" class="export"
+    >Export to Excel</a
+  >
+</div>
+{% endblock %}

@@ -1,0 +1,107 @@
+{% extends '/super_admin/base.html' %}
+
+{% block css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/store-reg.css')}}">
+{% endblock %}
+
+{% block heading %}
+Staff
+{% endblock %}
+
+{% block content %}
+<div class="content-container">
+    <div class="head">
+        <h1>Update Staff</h1>
+    </div>
+    <form action="{{ url_for('edit_staff', staff_id=staff.id) }}" method="post">
+        <div class="store-detail">
+            <h2>Details</h2>
+            <div class="store-detail">
+                <div>
+                    <div class="details-input">
+                        <label>Full Name:</label>
+                        <input type="text" name="fullname" id="fullname" placeholder="Full Name" required
+                            value="{{staff.username}}">
+                    </div>
+                </div>
+                <div>
+                    <div class="details-input">
+                        <label>Tel Number:</label>
+                        <input type="number" name="telnumber" id="telnumber" placeholder="Tel Number" required
+                            value="{{staff.phone_number}}">
+                    </div>
+                    <div class="details-input">
+                        <label>Gender <span>*</span></label>
+                        <select name="gender" id="gender" required>
+                            <option value="" {% if staff.gender=='' %}selected{% endif %}></option>
+                            <option value="Male" {% if staff.gender=='Male' %}selected{% endif %}>Male</option>
+                            <option value="Female" {% if staff.gender=='Female' %}selected{% endif %}>Female</option>
+                        </select>
+                    </div>
+                    <div class="details-input">
+                        <label>Role <span>*</span></label>
+                        <select name="role" id="role" required>
+                            <option value="" {% if staff.role=='' %}selected{% endif %}></option>
+                            <option value="SUPER ADMIN" {% if staff.role=='SUPER ADMIN' %}selected{% endif %}>Super
+                                Admin</option>
+                            <option value="ADMIN" {% if staff.role=='ADMIN' %}selected{% endif %}>Admin</option>
+                            <option value="DATA ENTRY" {% if staff.role=='DATA ENTRY' %}selected{% endif %}>Data Entry
+                            </option>
+                        </select>
+                    </div>
+                    
+                    <div id="dynamic-form" class="dynamic"></div>
+                    <div class="details-input">
+                        <label>Email <span>*</span></label>
+                        <input type="email" name="email" id="email" placeholder="Email" required value="{{staff.email}}"
+                            pattern="[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}">
+                    </div>
+                    
+                    <div class="details-input">
+                        <label>Password <span>*</span></label>
+                        <input type="password" name="password" id="password" placeholder="Password" required
+                            value="{{staff.password}}">
+                    </div>
+                </div>
+            </div>
+            <div class="input-submit">
+                <input type="submit" value="Update">
+            </div>
+    </form>
+</div>
+
+<script>
+    const roleSelected = document.getElementById("role");
+    const dynamicFormContainer = document.getElementById("dynamic-form");
+
+    roleSelected.addEventListener("change", () => {
+        const selectedRole = roleSelected.value;
+        if (selectedRole === "DATA ENTRY") {
+            // Generate the printer or photocopier form
+            dynamicFormContainer.innerHTML = `
+            <div class="details-input" required>
+                <label>Access <span>*</span></label>
+                <select name="access" id="access" required>
+                    <option value="" {% if staff.access=='' %}selected{% endif %}></option>
+                    <option value="Store Rent" {% if staff.access=='Store Rent' %}selected{% endif %}>Store Rent</option>
+                    <option value="Stores Management" {% if staff.access=='Stores Management' %}selected{% endif %}>Stores Management</option>
+                    <option value="Assets" {% if staff.access=='Assets' %}selected{% endif %}>Assets</option>
+                </select>
+            </div>
+            `;
+        } else if (selectedRole !== "ADMIN") {
+            // Hide the access input for roles other than ADMIN
+            dynamicFormContainer.innerHTML = `
+            <style>
+                #dynamic-form {
+                    display: none;
+                }
+            </style>
+            `;
+        }
+    });
+
+</script>
+
+
+{% endblock %}

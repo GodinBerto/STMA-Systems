@@ -1,0 +1,61 @@
+{% extends '/super_admin/base.html' %} {% block heading %} Assets {% endblock %}
+{% block content %}
+
+<!----------------------Search------------------------>
+<div class="search-container">
+  <form class="search" action="{{url_for ('asset_search')}}" method="GET">
+    <input type="search" name="search" id="search" placeholder="Search" />
+    <input type="submit" value="Search" />
+  </form>
+</div>
+
+<!-- ================ Order Details List ================= -->
+<div class="details">
+  <div class="recentOrders">
+    <div class="cardHeader">
+      <h2>Assets</h2>
+      <a href="{{url_for ('add_asset')}}" class="btn">Add Asset</a>
+    </div>
+
+    <table>
+      <thead>
+        <tr>
+          <td>ID</td>
+          <td>Department</td>
+          <td>Unit</td>
+          <td>Device</td>
+          <td>Divsion</td>
+          <td>Date Purchased</td>
+          <td>Officer Incharge</td>
+          <td>Action</td>
+        </tr>
+      </thead>
+
+      <tbody>
+        {% for assets in asset %}
+        <tr>
+          <td>{{assets.id}}</td>
+          <td>{{assets.department}}</td>
+          <td>{{assets.unit}}</td>
+          <td>{{assets.device_name}}</td>
+          <td>{{assets.division}}</td>
+          <td>{{assets.date_purchased}}</td>
+          <td>{{assets.officer}}</td>
+          <td class="action">
+            <a href="{{ url_for('more_asset', id=assets.id) }}" class="btn"
+              >Details</a
+            >
+            <a href="{{ url_for('delete_asset', id=assets.id) }}" class="delete"
+              ><ion-icon name="close-outline"></ion-icon
+            ></a>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+<div class="export-container">
+  <a href="{{url_for('export_excel_asset')}}" class="export">Export to Excel</a>
+</div>
+{% endblock %}

@@ -1,0 +1,58 @@
+{% extends 'super_admin/base.html' %} {% block heading %} Staff {% endblock %}
+{% block content %}
+
+<!----------------------Search------------------------>
+<div class="search-container">
+  <form class="search" action="{{url_for ('search_staff')}}" method="GET">
+    <input type="search" name="search" id="search" placeholder="Search" />
+    <input type="submit" value="Search" />
+  </form>
+</div>
+
+<!-- ================ Order Details List ================= -->
+<div class="details">
+  <div class="recentOrders">
+    <div class="cardHeader">
+      <h2>Staffs</h2>
+      <a href="{{url_for('staff_add')}}" class="btn">Add Staff</a>
+    </div>
+
+    <table>
+      <thead>
+        <tr>
+          <td>id</td>
+          <td>staff Name</td>
+          <td>Role</td>
+          <td>Email</td>
+          <td>Phone Number</td>
+          <td>action</td>
+        </tr>
+      </thead>
+
+      <tbody>
+        {% for staff in staff %}
+        <tr>
+          <td>{{staff.id}}</td>
+          <td>{{ staff['username'] }}</td>
+          <td>{{ staff['role'] }}</td>
+          <td>{{ staff['email'] }}</td>
+          <td>{{ staff['phone_number'] }}</td>
+          <td class="action">
+            <a
+              href="{{ url_for('more_info_staff', staff_id=staff.id) }}"
+              class="btn"
+              >Details</a
+            >
+            <a
+              href="{{ url_for('delete_staff', staff_id=staff.id) }}"
+              class="delete"
+              ><i class="fa-solid fa-xmark"></i
+            ></a>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

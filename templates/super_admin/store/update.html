@@ -1,0 +1,252 @@
+{% extends '/super_admin/base.html' %} {% block heading %} Store Rent {% endblock %}
+{% block content %}
+<div class="content-container">
+  <div class="head">
+    <h1>Update Stores</h1>
+  </div>
+  <form
+    action="{{ url_for('update_stores', store_number=stores.store_number) }}"
+    method="post"
+    enctype="multipart/form-data">
+    <div class="store-detail">
+      <h2>Store Detail</h2>
+      <div>
+        <div>
+          <div class="details-input">
+            <label for="store_number"
+              >Store Number <span class="hash">*</span></label
+            >
+            <input
+              type="text"
+              name="store_number"
+              id="store_number"
+              placeholder="Store Number"
+              value="{{stores.store_number}}"
+              required />
+          </div>
+        </div>
+        <div>
+          <div class="details-input" required>
+            <label>Store Size <span>*</span></label>
+            <select name="size" id="size" required>
+                <option value="" {% if stores.size=='' %}selected{%endif%}></option>
+                <option value="Small" {% if stores.store_size=='Small' %}selected{%endif%}>Small</option>
+                <option value="Medium" {% if stores.store_size=='Medium' %}selected{%endif%}>Medium</option>
+                <option value="Large" {% if stores.store_size=='Large' %}selected{%endif%}>Large</option>
+            </select>
+          </div>
+        </div>
+        <div>
+          <div class="details-input" required>
+            <label>Rent <span>*</span></label>
+            <input
+              type="number"
+              name="rent"
+              id="rent"
+              placeholder="Rent"
+              value="{{stores.rent}}"
+              required />
+          </div>
+        </div>
+        <div class="details-input">
+          <label>Sector</label>
+          <input
+            type="text"
+            name="sector"
+            id="sector"
+            placeholder="Sector"
+            value="{{stores.sector}}"
+            required />
+        </div>
+        <div>
+          <div class="details-input" required>
+            <label>Nature Of Business <span>*</span></label>
+            <input
+              type="text"
+              name="business"
+              id="business"
+              placeholder="Business"
+              value="{{stores.business}}"
+              required />
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="store-detail">
+      <h2>Tenant Detail</h2>
+      <div>
+        <div class="details-input image-container">
+            <img src="{{ url_for('static', filename='/images/' + tenant.image) if tenant.image else url_for('static', filename='images/user.jpg') }}" alt="Profile Image" class="imagee">
+            <input type="file" name="t_image" id="t_image" accept="image/*">
+            <label for="t_image" class="custom-file-upload">Upload Image</label>
+        </div>
+      </div>
+      <div>
+        <div class="details-input">
+          <label>Full Name <span>*</span></label>
+          <input
+            type="text"
+            name="t_fullname"
+            id="name"
+            placeholder="Full Name"
+            value="{{tenant.name}}"
+            required />
+        </div>
+      </div>
+      <div>
+        <div class="details-input">
+          <label>Tel Number <span>*</span></label>
+          <input
+            type="number"
+            name="t_telnumber"
+            id="telnumber"
+            placeholder="Tel Number"
+            value="{{tenant.number}}"
+            required />
+        </div>
+        <div class="details-input">
+          <label>Gender <span>*</span></label>
+          <select name="t_gender" id="t_gender" required>
+            <option value="" {% if tenant.gender=='' %}selected{% endif %}></option>
+            <option value="Male" {% if tenant.gender=='Male' %}selected{% endif %}>Male</option>
+            <option value="Female" {% if tenant.gender=='Female' %}selected{% endif %}>Female</option>
+        </select>
+        </div>
+        <div class="details-input">
+          <label>Date Of Birth <span>*</span></label>
+          <input
+            type="date"
+            name="t_birth"
+            id="birth"
+            placeholder="Date Of Birth"
+            value="{{tenant.birth}}"
+            required />
+        </div>
+      </div>
+      
+      <div>
+        <div class="details-input">
+          <label>National Identification Card Number</label>
+          <input
+            type="text"
+            name="t_id_number"
+            id="id_number"
+            placeholder="ID Card Number"
+            value="{{tenant.id_number}}" 
+            required/>
+        </div>
+      </div>
+      <div>
+        <div class="details-input">
+          <label>House Number <span class="opt">(Optional)</span></label>
+          <input
+            type="text"
+            name="t_house_number"
+            id="house-number"
+            placeholder="House Number" 
+            value="{{tenant.house_number}}"/>
+        </div>
+      </div>
+    </div>
+    {% if occupant.name != "None" %}
+    <div class="store-detail">
+      <h2>Occupant Detail</h2>
+      <div>
+        <div class="details-input image-container">
+            <img src="{{ url_for('static', filename='images/' + occupant.image) if image else url_for('static', filename='images/user.jpg') }}" alt="Profile Image" class="imagee">
+            <input type="file" name="o_image" id="o_image" accept="image/*">
+            <label for="o_image" class="custom-file-upload">Upload Image</label>
+        </div>
+      </div>
+      <div>
+        <div class="details-input">
+          <label>Full Name <span>*</span></label>
+          <input
+            type="text"
+            name="o_fullname"
+            id="name"
+            placeholder="Full Name"
+            value="{{occupant.name}}"
+            required />
+        </div>
+      </div>
+      <div>
+        <div class="details-input">
+          <label>Tel Number <span>*</span></label>
+          <input
+            type="number"
+            name="o_telnumber"
+            id="telnumber"
+            placeholder="Tel Number"
+            value="{{occupant.number}}"
+            required />
+        </div>
+        <div class="details-input">
+          <label>Gender <span>*</span></label>
+          <select name="o_gender" id="t_gender" required>
+            <option value="" {% if occupant.gender=='' %}selected{% endif %}></option>
+            <option value="Male" {% if occupant.gender=='Male' %}selected{% endif %}>Male</option>
+            <option value="Female" {% if occupant.gender=='Female' %}selected{% endif %}>Female</option>
+        </select>
+        </div>
+        <div class="details-input">
+          <label>Date Of Birth <span>*</span></label>
+          <input
+            type="date"
+            name="o_birth"
+            id="birth"
+            placeholder="Date Of Birth"
+            value="{{occupant.birth}}"
+            required />
+        </div>
+      </div>
+      
+      <div>
+        <div class="details-input">
+          <label>National Identification Card Number</label>
+          <input
+            type="text"
+            name="o_id_number"
+            id="id_number"
+            placeholder="ID Card Number"
+            value="{{occupant.id_number}}" 
+            required/>
+        </div>
+      </div>
+      <div>
+        <div class="details-input">
+          <label>House Number <span class="opt">(Optional)</span></label>
+          <input
+            type="text"
+            name="o_house_number"
+            id="house-number"
+            placeholder="House Number" 
+            value="{{occupant.house_number}}"/>
+        </div>
+      </div>
+    </div>
+    {% endif %}
+
+    <div class="store-detail">
+      <h2>Staff</h2>
+      <div>
+        <div class="details-input">
+          <label for="store_number">Staff Name:</label>
+          <input
+            type="text"
+            name="staff"
+            id="staff"
+            placeholder="Staff Name"
+            value="{{ stores.staff }}"
+            disabled
+            required />
+          <input type="hidden" name="staff" value="{{ stores.staff }}" />
+        </div>
+      </div>
+    </div>
+    <div class="input-submit">
+      <input type="submit" value="Update" />
+    </div>
+  </form>
+</div>
+{% endblock %}

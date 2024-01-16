@@ -1,0 +1,74 @@
+{% extends '/super_admin/base.html' %} {% block heading %} Staff {% endblock %}
+{% block content %}
+<div class="content-container">
+  <h1>Assets Details</h1>
+  <div class="all-container">
+    <div class="details-container">
+      <div class="titles">
+        <h2></h2>
+        <h2>Asset Id:{{asset.id}}</h2>
+      </div>
+      <div class="content-text">
+        <h3>Department Name:</h3>
+        <p>{{ asset.department }}</p>
+      </div>
+      <div class="content-text">
+        <h3>Unit Name:</h3>
+        <p>{{ asset.unit }}</p>
+      </div>
+      <div class="content-text">
+        <h3>Division:</h3>
+        <p>{{asset.division}}</p>
+      </div>
+      <div class="content-text">
+        <h3>Date Purchased:</h3>
+        <p>{{asset.date_purchased}}</p>
+      </div>
+      <div class="content-text">
+        <h3>Officer Incharge:</h3>
+        <p>{{asset.officer}}</p>
+      </div>
+      <div class="titles">
+        <h2>Device Details</h2>
+      </div>
+      <div class="content-text">
+        <h3>Device Type:</h3>
+        <p>{{ asset.device_name }}</p>
+      </div>
+      <div class="content-text">
+        <h3>Device Brand:</h3>
+        <p>{{asset.brand}}</p>
+      </div>
+      <div class="content-text">
+        <h3>Device Serial Number:</h3>
+        <p>{{asset.serial_number}}</p>
+      </div>
+      <div class="content-text">
+        <h3>Device Embosenuit Number:</h3>
+        <p>{{asset.embosenuit_number}}</p>
+      </div>
+      <div class="content-text">
+        <h3>Device Status:</h3>
+        <p>{{asset.device_status}}</p>
+      </div>
+      {% if asset.device_name == 'Printer' or asset.device_name ==
+      'Photocopier'%}
+      <div class="content-text">
+        <h3>Type Of Toner:</h3>
+        <p>{{asset.toner}}</p>
+      </div>
+      {% elif asset.device_name == 'Universal Power Supply (UPS)' or
+      asset.device_name == 'Stabilizers' or asset.device_name == 'Switch' %}
+      <div class="content-text">
+        <h3>Capacity:</h3>
+        <p>{{asset.device_capacity}}</p>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+  <div class="actions">
+    <a class="green" href="{{url_for('back')}}">Back</a>
+    <a class="blue" href="{{ url_for('update_asset', id=asset.id) }}">Edit</a>
+  </div>
+</div>
+{% endblock %}

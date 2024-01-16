@@ -1,0 +1,121 @@
+{% extends '/super_admin/base.html' %} {% block heading %} Store Rent {%
+endblock %} {% block content %}
+<div class="content-container">
+  <h1>Full Details</h1>
+  <div class="all-container">
+    <div class="details-container">
+      <div class="titles">
+        <h2>Store Details</h2>
+        <h2>Store Id:{{ store.id }}</h2>
+      </div>
+      <div class="content-text">
+        <h3>Store Number:</h3>
+        <p>{{ store.store_number }}</p>
+      </div>
+      <div class="content-text">
+        <h3>Store Size:</h3>
+        <p>{{ store.store_size }}</p>
+      </div>
+      <div class="content-text">
+        <h3>Rent:</h3>
+        <p>{{ store.rent }}</p>
+      </div>
+      <div class="content-text">
+        <h3>Sector:</h3>
+        <p>{{ store.sector }}</p>
+      </div>
+      <div class="content-text">
+        <h3>Nature Of Business:</h3>
+        <p>{{ store.business }}</p>
+      </div>
+
+      <div class="titles">
+        <h2>Tenant Details</h2>
+      </div>
+      <div class="photo-image">
+        {% set t_image = tenant.image if tenant.image is not none else
+        'user.jpg' %}
+        <img
+          src="{{ url_for('static', filename='/images/' + t_image) }}"
+          alt="" />
+      </div>
+      <div class="content-text">
+        <h3>Full Name:</h3>
+        <p>{{ tenant.name }}</p>
+      </div>
+      <div class="content-text">
+        <h3>Tel Number:</h3>
+        <p>{{ tenant.number }}</p>
+      </div>
+      <div class="content-text">
+        <h3>Gender:</h3>
+        <p>{{ tenant.gender }}</p>
+      </div>
+      <div class="content-text">
+        <h3>Date Of Birth:</h3>
+        <p>{{ tenant.birth }}</p>
+      </div>
+      <div class="content-text">
+        <h3>National Identification Card Number:</h3>
+        <p>{{ tenant.id_number }}</p>
+      </div>
+      <div class="content-text">
+        <h3>House Number:</h3>
+        <p>{{ tenant.house_number }}</p>
+      </div>
+
+      {% if occupant.name != "None"%}
+      <div class="titles">
+        <h2>Occupant Details</h2>
+      </div>
+      <div class="photo-image">
+        {% set o_image1 = occupant.image if occupant.image is not none else
+        'user.jpg' %}
+        <img
+          src="{{ url_for('static', filename='/images/' + o_image1) }}"
+          alt="" />
+      </div>
+      <div class="content-text">
+        <h3>Full Name:</h3>
+        <p>{{ occupant.name }}</p>
+      </div>
+      <div class="content-text">
+        <h3>Tel Number:</h3>
+        <p>{{ occupant.number }}</p>
+      </div>
+      <div class="content-text">
+        <h3>Gender:</h3>
+        <p>{{ occupant.gender }}</p>
+      </div>
+      <div class="content-text">
+        <h3>Date Of Birth:</h3>
+        <p>{{ occupant.birth }}</p>
+      </div>
+      <div class="content-text">
+        <h3>National Identification Card Number:</h3>
+        <p>{{ occupant.id_number }}</p>
+      </div>
+      <div class="content-text">
+        <h3>House Number:</h3>
+        <p>{{ occupant.house_number }}</p>
+      </div>
+      {% endif %}
+      <div class="titles">
+        <h2>Staff</h2>
+      </div>
+      <div class="content-text">
+        <h3>Staff Name:</h3>
+        <p>{{ store.staff }}</p>
+      </div>
+    </div>
+    <div class="actions">
+      <a class="green" href="{{ url_for('back') }}">Back</a>
+      <a
+        class="blue"
+        href="{{url_for('update_stores', store_number=store.store_number)}}"
+        >Edit</a
+      >
+    </div>
+  </div>
+</div>
+{% endblock %}

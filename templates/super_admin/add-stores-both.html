@@ -1,0 +1,231 @@
+{% extends '/super_admin/base.html' %} {% block heading %} Store Rent {%
+endblock %} {% block content %}
+<div class="content-container">
+  <div class="head">
+    <h1>Store Registration</h1>
+  </div>
+  <form
+    action="{{ url_for('add_stores') }}"
+    method="post"
+    enctype="multipart/form-data">
+    <div class="store-detail">
+      <h2>Store Detail</h2>
+      <div>
+        <div>
+          <div class="details-input">
+            <label for="store_number"
+              >Store Number <span class="hash">*</span></label
+            >
+            <input
+              type="text"
+              name="store_number"
+              id="store_number"
+              placeholder="Store Number"
+              required />
+          </div>
+        </div>
+        <div>
+          <div class="details-input" required>
+            <label>Store Size <span>*</span></label>
+            <select name="size" id="size" required>
+              <option value="" selected></option>
+              <option value="small">Small</option>
+              <option value="medium">Medium</option>
+              <option value="large">Large</option>
+            </select>
+          </div>
+        </div>
+        <div>
+          <div class="details-input" required>
+            <label>Rent <span>*</span></label>
+            <input
+              type="number"
+              name="rent"
+              id="rent"
+              placeholder="Rent"
+              required />
+          </div>
+        </div>
+        <div class="details-input">
+          <label>Sector</label>
+          <input
+            type="text"
+            name="sector"
+            id="sector"
+            placeholder="Sector"
+            required />
+        </div>
+        <div>
+          <div class="details-input" required>
+            <label>Nature Of Business <span>*</span></label>
+            <input
+              type="text"
+              name="business"
+              id="business"
+              placeholder="Business"
+              required />
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="store-detail">
+      <h2>Ternant Detail</h2>
+      <div>
+        <div class="details-input">
+          <label>Full Name <span>*</span></label>
+          <input
+            type="text"
+            name="t_fullname"
+            id="name"
+            placeholder="Full Name"
+            required />
+        </div>
+      </div>
+      <div>
+        <div class="details-input">
+          <label>Tel Number <span>*</span></label>
+          <input
+            type="number"
+            name="t_telnumber"
+            id="telnumber"
+            placeholder="Tel Number"
+            required />
+        </div>
+        <div class="details-input">
+          <label>Gender <span>*</span></label>
+          <select name="t_gender" id="gender" required>
+            <option value="" selected></option>
+            <option value="Male">Male</option>
+            <option value="Female">Female</option>
+          </select>
+        </div>
+        <div class="details-input">
+          <label>Date Of Birth <span>*</span></label>
+          <input
+            type="date"
+            name="t_birth"
+            id="birth"
+            placeholder="Date Of Birth"
+            required />
+        </div>
+      </div>
+      <div>
+        <div class="details-input">
+          <label>Photo</label>
+          <input type="file" name="t_image" id="image" accept="image/*" />
+        </div>
+      </div>
+      <div>
+        <div class="details-input">
+          <label>National Identification Card Number</label>
+          <input
+            type="text"
+            name="t_id_number"
+            id="id_number"
+            placeholder="ID Card Number" />
+        </div>
+      </div>
+      <div>
+        <div class="details-input">
+          <label>House Number <span class="opt">(Optional)</span></label>
+          <input
+            type="text"
+            name="t_house_number"
+            id="house-number"
+            placeholder="House Number" />
+        </div>
+      </div>
+    </div>
+
+    <div class="store-detail">
+      <h2>Occupant Detail</h2>
+      <div>
+        <div class="details-input">
+          <label>Full Name <span>*</span></label>
+          <input
+            type="text"
+            name="o_fullname"
+            id="name"
+            placeholder="Full Name"
+            required />
+        </div>
+      </div>
+      <div>
+        <div class="details-input">
+          <label>Tel Number <span>*</span></label>
+          <input
+            type="number"
+            name="o_telnumber"
+            id="telnumber"
+            placeholder="Tel Number"
+            required />
+        </div>
+        <div class="details-input">
+          <label>Gender <span>*</span></label>
+          <select name="o_gender" id="gender" required>
+            <option value="" selected></option>
+            <option value="Male">Male</option>
+            <option value="Female">Female</option>
+          </select>
+        </div>
+        <div class="details-input">
+          <label>Date Of Birth <span>*</span></label>
+          <input
+            type="date"
+            name="o_birth"
+            id="birth"
+            placeholder="Date Of Birth"
+            required />
+        </div>
+      </div>
+      <div>
+        <div class="details-input">
+          <label>Photo</label>
+          <input type="file" name="o_image" id="image" accept="image/*" />
+        </div>
+      </div>
+      <div>
+        <div class="details-input">
+          <label>National Identification Card Number</label>
+          <input
+            type="text"
+            name="o_id_number"
+            id="id_number"
+            placeholder="ID Card Number" />
+        </div>
+      </div>
+      <div>
+        <div class="details-input">
+          <label>House Number <span class="opt">(Optional)</span></label>
+          <input
+            type="text"
+            name="o_house_number"
+            id="house-number"
+            placeholder="House Number" />
+        </div>
+      </div>
+    </div>
+
+    <div class="store-detail">
+      <h2>Staff</h2>
+      <div>
+        <div class="details-input">
+          <label for="store_number">Staff Name:</label>
+          <input
+            type="text"
+            name="staff"
+            id="staff"
+            placeholder="Staff Name"
+            value="{{username}}"
+            disabled
+            required />
+          <input type="hidden" name="staff" value="{{ username }}" />
+        </div>
+      </div>
+    </div>
+    <div class="input-submit">
+      <input type="submit" value="Register" />
+    </div>
+  </form>
+</div>
+{% endblock %}

@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link
+      rel="stylesheet"
+      href="{{url_for('static', filename='css/login.css')}}" />
+    <title>STMA</title>
+
+    <script>
+      function showError(message) {
+        alert(message);
+      }
+    </script>
+  </head>
+
+  <body>
+    <div class="bg-img">
+      <div class="login-container">
+        <div class="login-form-header">
+          <h1>Login</h1>
+        </div>
+        <div class="login-form">
+          <form action="{{ url_for('index') }}" method="POST">
+            <div class="input-container">
+              <label for="Username">Username</label>
+              <input
+                type="text"
+                name="username"
+                id="username"
+                placeholder="Username" />
+            </div>
+            <div class="input-container">
+              <label for="Password">Password</label>
+              <input
+                type="password"
+                name="password"
+                id="password"
+                placeholder="Password" />
+            </div>
+            <div class="input-container">
+              <input type="submit" value="Login" />
+            </div>
+          </form>
+          {% if error %}
+          <script>
+            showError("{{ error }}");
+          </script>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

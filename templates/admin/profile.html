@@ -1,0 +1,60 @@
+{% extends 'admin/base.html' %}
+
+{% block heading %}
+Profile
+{% endblock %}
+
+{% block content %}
+<div class="content-container">
+    <div class="head">
+        <h1>Profile</h1>
+    </div>
+    <form action="{{ url_for('admin_profile') }}" method="post" enctype="multipart/form-data">
+        <div class="image-container">
+            <img src="{{ url_for('static', filename='images/' + image) if image else url_for('static', filename='images/STMA Logo.jpg') }}" alt="Profile Image" class="imagee">
+            <input type="file" name="image" id="image" accept="image/*">
+            <label for="image" class="custom-file-upload">Upload Image</label>
+        </div>        
+        <div class="store-detail">
+            <h2>Details</h2>
+            <div class="store-detail">
+                <div class="details-container">
+                    <div class="details-input">
+                        <label>Full Name:</label>
+                        <input type="text" name="fullname" id="fullname" placeholder="Full Name" required
+                            value="{{username}}">
+                    </div>
+                </div>
+                <div>
+                    <div class="details-input">
+                        <label>Tel Number:</label>
+                        <input type="number" name="telnumber" id="telnumber" placeholder="Tel Number" required
+                            value="{{phone}}">
+                    </div>
+                    <div class="details-input">
+                        <label>Gender:</label>
+                        <select name="gender" id="gender" required>
+                            <option value="" {% if gender=='' %}selected{% endif %}></option>
+                            <option value="Male" {% if gender=='Male' %}selected{% endif %}>Male</option>
+                            <option value="Female" {% if gender=='Female' %}selected{% endif %}>Female</option>
+                        </select>
+                    </div>
+                    <div class="details-input">
+                        <label>Email:</label>
+                        <input type="email" name="email" id="email" placeholder="Email" required value="{{email}}"
+                            pattern="[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}">
+                    </div>
+                    <div class="details-input">
+                        <label>Password:</label>
+                        <input type="password" name="password" id="password" placeholder="Password" required
+                            value="{{password}}">
+                    </div>
+                </div>
+            </div>
+            <div class="input-submit">
+                <input type="submit" value="Update">
+            </div>
+    </form>
+</div>
+
+{% endblock %}
