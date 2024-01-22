@@ -133,6 +133,7 @@
             id="postal_address"
             placeholder="Postal Address"
             value="{{ artisan.home_postal }}"
+            oninput="formatPostal(this)"
             required />
         </div>
       </div>
@@ -147,6 +148,7 @@
             id="gps_address"
             placeholder="GPS Address"
             value="{{ artisan.home_gps }}"
+            oninput="formatGPS(this)"
             required />
         </div>
       </div>
@@ -201,7 +203,7 @@
           name="workshop_gps"
           id="workshop_gps"
           placeholder="Workshop GPS Address"
-          oninput="formatWorkshopGPS(this)"
+          oninput="formatGPS(this)"
           value="{{ artisan.shop_gps }}"
           required />
       </div>
@@ -293,60 +295,75 @@
 <script>
   const cardSelected = document.getElementById("card");
   const dynamicFormContainer = document.getElementById("dynamic-form");
+  const cardNumberInput = document.getElementById("card_number");
+  
+  function createCardNumberInputNumber() {
+    return `
+      <div>
+        <div class="details-input">
+          <label for="card_number"
+            >Card Number <span class="hash">*</span></label
+          >
+          <input
+            type="number"
+            name="card_number"
+            id="card_number"
+            placeholder="Card Number"
+            value="{{ artisan.id_number }}"
+            required />
+        </div>
+      </div>
+    `;
+  }
+
+  function createCardNumberInputText() {
+    return `
+      <div>
+        <div class="details-input">
+          <label for="card_number"
+            >Card Number <span class="hash">*</span></label
+          >
+          <input
+            type="text"
+            name="card_number"
+            id="card_number"
+            placeholder="Card Number"
+            value="{{ artisan.id_number }}"
+            required />
+        </div>
+      </div>
+    `;
+  }
+
+  // Initial form generation on page load
+  if (cardSelected.value === "Ghana Card" || cardSelected.value === "Passport") {
+    dynamicFormContainer.innerHTML = createCardNumberInputText();
+  } else if (cardSelected.value === "Voters ID Card") {
+    dynamicFormContainer.innerHTML = createCardNumberInputNumber();
+  }
 
   cardSelected.addEventListener("change", () => {
     const selectedCard = cardSelected.value;
     dynamicFormContainer.innerHTML = ""; // Clear any previous form
 
     if (selectedCard === "Ghana Card" || selectedCard === "Passport") {
-      // Generate the printer or photocopier form
-      dynamicFormContainer.innerHTML = `
-        <div>
-          <div class="details-input">
-            <label for="card_number"
-              >Card Number <span class="hash">*</span></label
-            >
-            <input
-              type="text"
-              name="card_number"
-              id="card_number"
-              placeholder="Card Number"
-              value="{{ artisan.id_number }}"
-              required />
-          </div>
-        </div>
-            `;
+      dynamicFormContainer.innerHTML = createCardNumberInputText();
     } else if (selectedCard === "Voters ID Card") {
-      // Hide the access input for roles other than ADMIN
-      dynamicFormContainer.innerHTML = `
-        <div>
-          <div class="details-input">
-            <label for="card_number"
-              >Card Number <span class="hash">*</span></label
-            >
-            <input
-              type="number"
-              name="card_number"
-              id="card_number"
-              placeholder="Card Number"
-              value="{{ artisan.id_number }}"
-              required />
-          </div>
-        </div>
-            `;
+      dynamicFormContainer.innerHTML = createCardNumberInputNumber();
+    } else {
+      dynamicFormContainer.innerHTML = '';
     }
   });
+  
+
 
   const dynamicFather = document.getElementById("dynamic-form-father");
   const father = document.getElementById("father_status");
+  const fatherNumberInput = document.getElementById("f_number");
 
-  father.addEventListener("change", () => {
-    const selectedFather = father.value;
-    dynamicFather.innerHTML = ""; // Clear any previous form
-
-    if (selectedFather === "Alive") {
-        // Generate the printer or photocopier form
-        dynamicFather.innerHTML = `
+    // Function to create the telephone number input
+    function createTelephoneNumberInputFather() {
+        return `
             <div>
                 <div class="details-input">
                     <label for="f_number">Telephone Number <span class="hash">*</span></label>
@@ -361,37 +378,68 @@
             </div>
         `;
     }
-});
+
+    // Initial check on page load
+    if (father.value === "Alive") {
+        dynamicFather.innerHTML = createTelephoneNumberInputFather();
+    }
+
+    father.addEventListener("change", () => {
+        const selectedFather = father.value;
+        dynamicFather.innerHTML = ""; // Clear any previous form
+
+        if (selectedFather === "Alive") {
+            // Generate the input for Father's telephone number
+            dynamicFather.innerHTML = createTelephoneNumberInputFather();
+        }else {
+          // Clear the input if the father is dead
+          fatherNumberInput.value = "";
+      }
+  });
+
 
   const dynamicMother = document.getElementById("dynamic-form-mother");
   const mother = document.getElementById("mother_status");
+  const motherNumberInput = document.getElementById("m_number");
+
+  // Function to create the telephone number input
+  function createTelephoneNumberInputMother() {
+      return `
+          <div>
+              <div class="details-input">
+                  <label for="m_number">Telephone Number <span class="hash">*</span></label>
+                  <input
+                      type="number"
+                      name="m_number"
+                      id="m_number"
+                      placeholder="Telephone Number"
+                      value="{{ artisan.mothers_number }}"
+                      required />
+              </div>
+          </div>
+      `;
+  }
+
+  // Initial check on page load
+  if (mother.value === "Alive") {
+      dynamicMother.innerHTML = createTelephoneNumberInputMother();
+  }
 
   mother.addEventListener("change", () => {
-    const selectedMother = mother.value;
-    dynamicMother.innerHTML = ""; // Clear any previous form
+      const selectedMother = mother.value;
+      dynamicMother.innerHTML = ""; // Clear any previous form
 
-    if (selectedMother === "Alive") {
-      // Generate the printer or photocopier form
-      dynamicMother.innerHTML = `
-        <div>
-          <div class="details-input">
-            <label for="m_number"
-              >Telephone Number <span class="hash">*</span></label
-            >
-            <input
-              type="number"
-              name="m_number"
-              id="m_number"
-              placeholder="Telephone Number"
-              value="{{ artisan.mothers_number }}"
-              required />
-          </div>
-        </div>
-            `;
-    }
+      if (selectedMother === "Alive") {
+          // Generate the input for Mother's telephone number
+          dynamicMother.innerHTML = createTelephoneNumberInputMother();
+      } else {
+          // Clear the input if the mother is dead
+          motherNumberInput.value = "";
+      }
   });
 
-  function formatWorkshopGPS(input) {
+
+  function formatGPS(input) {
     // Remove any existing hyphens and non-alphanumeric characters
     let cleanValue = input.value.replace(/[^a-zA-Z0-9]/g, "");
 
@@ -409,6 +457,38 @@
             cleanValue
               .substring(3)
               .match(/.{1,4}/g)
+              ?.join("-") || "";
+
+        // Limit the total length to 15 characters
+        input.value = formattedValue.slice(0, 18);
+      } else {
+        // If only three or fewer characters, set the value with the prefix
+        input.value = prefix;
+      }
+    } else {
+      // Reset the input if it's empty
+      input.value = "";
+    }
+  }
+
+  function formatPostal(input) {
+    // Remove any existing hyphens and non-alphanumeric characters
+    let cleanValue = input.value.replace(/[^a-zA-Z0-9]/g, "");
+
+    // Check if the input has at least one character
+    if (cleanValue.length > 0) {
+      // Extract the first three characters as a prefix
+      const prefix = cleanValue.substring(0, 3);
+
+      // Check if there are remaining characters for formatting
+      if (cleanValue.length > 3) {
+        // Format the remaining characters with hyphens
+        const formattedValue =
+          prefix +
+            "-" +
+            cleanValue
+              .substring(3)
+              .match(/.{1,3}/g)
               ?.join("-") || "";
 
         // Limit the total length to 15 characters
