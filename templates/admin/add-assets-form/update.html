@@ -1,74 +1,154 @@
-{% extends '/super_admin/base.html' %}
-{% block heading %} Departments {% endblock %}
+{% extends '/admin/base.html' %}
+{% block heading %} Assets {% endblock %}
 {% block content %}
 <div class="content-container">
   <div class="head">
-    <h1>Department Registration</h1>
+    <h1>Update Asset Registry</h1>
   </div>
   <form action="{{ url_for('admin_update_asset', id=asset.id) }}" method="post">
     <div class="store-detail">
-      <h2>Asset Details</h2>
+      <h2>Asset Detail</h2>
       <div>
-        <div class="details-input" required>
-            <label>Department Name <span class="hash">*</span></label>
-            <select name="department" id="department" required>
-                <option value="" {% if asset.department == '' %}selected{% endif %}></option>
-                {% for department in departments %}
-                    <option value="{{ department }}" {% if asset.department == department %}selected{% endif %}>
-                        {{ department }}
-                    </option>
-                {% endfor %}
-            </select>
-        </div>
-      </div>
-      <div>
-        <div class="details-input" required>
-            <label>Unit <span class="hash">*</span></label>
-            <select name="unit" id="unit" required>  
-                <option value="" {% if asset.unit == '' %}selected{% endif %}></option>
-                {% for unit in units %}
-                    <option value="{{ unit }}" {% if asset.unit == unit %}selected{% endif %}>
-                        {{ unit }}
-                    </option>
-                {% endfor %}
-            </select>
-        </div>
-      </div>
-      <div class="details-input">
-        <label for="division">Division <span class="hash">*</span></label>
-        <input type="text" name="division" id="division" placeholder="Division" value="{{asset.division}}" required/>
-    </div>
 
-    <div class="details-input">
-        <label for="date_purchased">Date Purchased <span class="hash">*</span></label>
-        <input type="date" name="date_purchased" id="date_purchased" placeholder="Date Purchased" value="{{asset.date_purchased}}" required />
-    </div>
-    <div>
-      <div>
+        <div class="details-input" required>
+          <label>Department Name <span class="hash">*</span></label>
+          <select name="department" id="department" required>
+              <option value="" {% if asset.department == '' %}selected{% endif %}></option>
+              {% for department in departments %}
+                  <option value="{{ department }}" {% if asset.department == department %}selected{% endif %}>
+                      {{ department }}
+                  </option>
+              {% endfor %}
+          </select>
+        </div>
+  
+        <div class="details-input" required>
+          <label>Unit <span class="hash">*</span></label>
+          <select name="unit" id="unit" required>  
+              <option value="" {% if asset.unit == '' %}selected{% endif %}></option>
+              {% for unit in units %}
+                  <option value="{{ unit }}" {% if asset.unit == unit %}selected{% endif %}>
+                      {{ unit }}
+                  </option>
+              {% endfor %}
+          </select>
+        </div>
+
+        <div class="details-input" required>
+          <label>Device <span class="hash">*</span></label>
+          <select name="device" id="device" required>
+            <option value="" {% if asset.device_name == '' %}selected{% endif %}></option>
+            <option value="Desktop Computer" {% if asset.device_name == 'Desktop Computer' %}selected{% endif %}>Desktop Computer</option>
+            <option value="Laptop" {% if asset.device_name == 'Laptop' %}selected{% endif %}>Laptop</option>
+            <option value="Printer" {% if asset.device_name == 'Printer' %}selected{% endif %}>Printer</option>
+            <option value="Photocopier" {% if asset.device_name == 'Photocopier' %}selected{% endif %}>Photocopier</option>
+            <option value="Universal Power Supply (UPS)" {% if asset.device_name == 'Universal Power Supply (UPS)' %}selected{% endif %}>Universal Power Supply (UPS)</option>
+            <option value="Stabilizers" {% if asset.device_name == 'Stabilizers' %}selected{% endif %}>Stabilizers</option>
+            <option value="Switch" {% if asset.device_name == 'Switch' %}selected{% endif %}>Switch</option>
+            <option value="Camera" {% if asset.device_name == 'Camera' %}selected{% endif %}>Camera</option>
+            <option value="Projector" {% if asset.device_name == 'Projector' %}selected{% endif %}>Projector</option>
+          </select>
+        </div>
+
+        <div id="dynamic-form" class="dynamic"></div>
+
         <div class="details-input">
-          <label for="officer">Officer Incharge <span class="hash">*</span></label>
-          <input type="text" name="officer" id="officer" placeholder="Officer Incharge" value="{{asset.officer}}" required />
+            <label for="division">Division <span class="hash">*</span></label>
+            <input type="text" name="division" id="division" placeholder="Division" value="{{asset.division}}" required />
+        </div>
+
+        <div class="details-input">
+            <label for="date_purchased">Date Purchased <span class="hash">*</span></label>
+            <input type="date" name="date_purchased" id="date_purchased" placeholder="Date Purchased" value="{{asset.date_purchased}}" required />
+        </div>
+
+        <div class="details-input">
+            <label for="officer">Officer Incharge <span class="hash">*</span></label>
+            <input type="text" name="officer" id="officer" placeholder="Officer Incharge" value="{{asset.officer}}" required />
         </div>
       </div>
     </div>
-
     <div class="store-detail">
-        <h2>Device Details</h2>
-        <div class="details-input" required>
-            <label>Device <span class="hash">*</span></label>
-            <select name="device" id="device" required>
-              <option value="" {% if asset.device_name == '' %}selected{% endif %}></option>
-              <option value="Desktop Computer" {% if asset.device_name == 'Desktop Computer' %}selected{% endif %}>Desktop Computer</option>
-              <option value="Laptop" {% if asset.device_name == 'Laptop' %}selected{% endif %}>Laptop</option>
-              <option value="Printer" {% if asset.device_name == 'Printer' %}selected{% endif %}>Printer</option>
-              <option value="Photocopier" {% if asset.device_name == 'Photocopier' %}selected{% endif %}>Photocopier</option>
-              <option value="Universal Power Supply (UPS)" {% if asset.device_name == 'Universal Power Supply (UPS)' %}selected{% endif %}>Universal Power Supply (UPS)</option>
-              <option value="Stabilizers" {% if asset.device_name == 'Stabilizers' %}selected{% endif %}>Stabilizers</option>
-              <option value="Switch" {% if asset.device_name == 'Switch' %}selected{% endif %}>Switch</option>
-              <option value="Camera" {% if asset.device_name == 'Camera' %}selected{% endif %}>Camera</option>
-              <option value="Projector" {% if asset.device_name == 'Projector' %}selected{% endif %}>Projector</option>
-            </select>
-        </div>
+      <h2>Staff</h2>
+      <div class="details-input">
+        <label for="staff">Staff Name:</label>
+        <input type="text" name="staff" id="staff" placeholder="Staff Name" value="{{ username }}" disabled required />
+        <input type="hidden" name="staff" value="{{ username }}" />
+      </div>
+    </div>
+    <div class="input-submit">
+      <input type="submit" value="Update">
+    </div>
+  </form>
+</div>
+</div>
+<script>
+  const deviceSelect = document.getElementById("device");
+  const dynamicFormContainer = document.getElementById("dynamic-form");
+
+  function createForm1(){
+    return `
+                <h2>Device Detail</h2>
+                <div class="details-input">
+                    <label for="brand">Brand <span class="hash">*</span></label>
+                    <input type="text" name="brand" id="brand" placeholder="Brand" value="{{asset.brand}}" required>
+                </div>
+                <div class="details-input">
+                    <label for="serial_number">Serial Number <span class="hash">*</span></label>
+                    <input type="text" name="serial_number" id="serial_number" placeholder="Serial Number" value="{{asset.serial_number}}" required>
+                </div>
+                <div class="details-input">
+                    <label for="embosenuit">Embosenuit Number <span class="hash">*</span></label>
+                    <input type="text" name="embosenuit" id="embosenuit" placeholder="Embosenuit Number" value="{{asset.embosenuit_number}}" required>
+                </div>
+                <div class="details-input">
+                  <label for="status">Status <span class="hash">*</span></label>
+                  <select name="status" id="status" required>
+                      <option value="" {% if asset.device_status == '' %}selected{% endif %}></option>
+                      <option value="Active" {% if asset.device_status == 'Active' %}selected{% endif %}>Active</option>
+                      <option value="Not Active" {% if asset.device_status == 'Not Active' %}selected{% endif %}>Not Active</option>
+                    </select>
+                </div>
+                <div class="details-input">
+                    <label for="toner_type">Type Of Toner <span class="hash">*</span></label>
+                    <input type="text" name="toner_type" id="toner_type" placeholder="Type Of Toner" value="{{asset.toner}}" required />
+                </div>
+    `
+  }
+
+  function createForm2(){
+    return `
+                <h2>Device Detail</h2>
+                <div class="details-input">
+                    <label for="brand">Brand <span class="hash">*</span></label>
+                    <input type="text" name="brand" id="brand" placeholder="Brand" value="{{asset.brand}}" required>
+                </div>
+                <div class="details-input">
+                    <label for="serial_number">Serial Number <span class="hash">*</span></label>
+                    <input type="text" name="serial_number" id="serial_number" placeholder="Serial Number" value="{{asset.serial_number}}" required>
+                </div>
+                <div class="details-input">
+                    <label for="embosenuit">Embosenuit Number <span class="hash">*</span></label>
+                    <input type="text" name="embosenuit" id="embosenuit" placeholder="Embosenuit Number" value="{{asset.embosenuit_number}}" required>
+                </div>
+                <div class="details-input">
+                  <label for="status">Status <span class="hash">*</span></label>
+                  <select name="status" id="status" required>
+                      <option value="" {% if asset.device_status == '' %}selected{% endif %}></option>
+                      <option value="Active" {% if asset.device_status == 'Active' %}selected{% endif %}>Active</option>
+                      <option value="Not Active" {% if asset.device_status == 'Not Active' %}selected{% endif %}>Not Active</option>
+                  </select>
+                </div>
+                <div class="details-input">
+                    <label for="device_capacity">Capacity <span class="hash">*</span></label>
+                    <input type="number" name="device_capacity" id="capacity" placeholder="Capacity" value="{{asset.device_capacity}}" required>
+                </div>
+    `
+  }
+
+  function createForm3(){
+    return `
+        <h2>Device Detail</h2>
         <div class="details-input">
             <label for="brand">Brand <span class="hash">*</span></label>
             <input type="text" name="brand" id="brand" placeholder="Brand" value="{{asset.brand}}" required>
@@ -82,47 +162,51 @@
             <input type="text" name="embosenuit" id="embosenuit" placeholder="Embosenuit Number" value="{{asset.embosenuit_number}}" required>
         </div>
         <div class="details-input">
-            <label for="status">Status <span class="hash">*</span></label>
-            <select name="status" id="status" required>
-                <option value="" {% if asset.device_status == '' %}selected{% endif %}></option>
-                <option value="Active" {% if asset.device_status == 'Active' %}selected{% endif %}>Active</option>
-                <option value="Not Active" {% if asset.device_status == 'Not Active' %}selected{% endif %}>Not Active</option>
-              </select>
+          <label for="status">Status <span class="hash">*</span></label>
+          <select name="status" id="status" required>
+              <option value="" {% if asset.device_status == '' %}selected{% endif %}></option>
+              <option value="Active" {% if asset.device_status == 'Active' %}selected{% endif %}>Active</option>
+              <option value="Not Active" {% if asset.device_status == 'Not Active' %}selected{% endif %}>Not Active</option>
+          </select>
         </div>
-        {% if asset.device_name == 'Printer' or asset.device_name == 'Photocopier'%}
-        <div>
-          <div class="details-input">
-            <label for="unit">Type Of Toner <span class="hash">*</span></label>
-            <input type="text" name="toner" id="toner" placeholder="Type Of Toner" value="{{asset.toner}}" required />
-          </div>
-        </div>
-        {% elif asset.device_name == 'Universal Power Supply (UPS)' or asset.device_name == 'Stabilizers' or asset.device_name == 'Switch'%}
-        <div>
-          <div class="details-input">
-            <label for="unit">Capacity <span class="hash">*</span></label>
-            <input type="text" name="capacity" id="capacity" placeholder="Capacity" value="{{asset.device_capacity}}" required />
-          </div>
-        </div>
-        {% endif %}
-        <div>
-            <div class="details-input">
-              <input type="hidden" name="toner" id="toner" placeholder="Type Of Toner" value="none" required />
-            </div>
-        </div>
-        <div>
-            <div class="details-input">
-              <input type="hidden" name="capacity" id="capacity" placeholder="Capacity" value="none" required />
-            </div>
-          </div>
-      </div>
-    
-    
-    <div class="input-submit">
-      <input type="submit" value="Update">
-    </div>
-  </form>
-</div>
-</div>
+    `
+  }
 
+  if (deviceSelect.value === "Printer" || deviceSelect.value === "Photocopier") {
+    // Generate the printer or photocopier form
+    dynamicFormContainer.innerHTML = createForm1();
+  } else if (
+    deviceSelect.value === "Universal Power Supply (UPS)" ||
+    deviceSelect.value === "Stabilizers" ||
+    deviceSelect.value === "Switch"
+  ) {
+    dynamicFormContainer.innerHTML = createForm2();
+  } else if(
+    deviceSelect.value === "Camera" ||
+    deviceSelect.value === "Projector" ||
+    deviceSelect.value === "Laptop" ||
+    deviceSelect.value === "Desktop Computer"
+  ){
+      dynamicFormContainer.innerHTML = createForm3();
+  }
 
+  deviceSelect.addEventListener("change", () => {
+    const selectedDevice = deviceSelect.value;
+    dynamicFormContainer.innerHTML = ""; // Clear any previous form
+
+    if (selectedDevice === "Printer" || selectedDevice === "Photocopier") {
+      // Generate the printer or photocopier form
+      dynamicFormContainer.innerHTML = createForm1();
+    } else if (
+      selectedDevice === "Universal Power Supply (UPS)" ||
+      selectedDevice === "Stabilizers" ||
+      selectedDevice === "Switch"
+    ) {
+      dynamicFormContainer.innerHTML = createForm2();
+    } else {
+        dynamicFormContainer.innerHTML = createForm3();
+    }
+  });
+
+</script>
 {% endblock %}

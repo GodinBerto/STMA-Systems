@@ -1,0 +1,237 @@
+{% extends '/super_admin/base.html' %} {% block heading %} Report {% endblock %}
+{% block content %}
+<div class="content-container">
+  <div class="head">
+    <h1>Add Report</h1>
+  </div>
+  <form
+    action="{{ url_for('add_report') }}"
+    method="post"
+    enctype="multipart/form-data">
+    <div class="store-detail">
+      <h2>Personal Details</h2>
+
+      <div>
+        <div class="details-input">
+          <label for="name">First Name <span class="hash">*</span></label>
+          <input
+            type="text"
+            name="name"
+            id="name"
+            placeholder="Name"
+            required />
+        </div>
+      </div>
+      <div>
+        <div class="details-input">
+          <label for="name">Last Name <span class="hash">*</span></label>
+          <input
+            type="text"
+            name="name"
+            id="name"
+            placeholder="Name"
+            required />
+        </div>
+      </div>
+      <div>
+        <div class="details-input">
+          <label>Gender <span>*</span></label>
+          <select name="gender" id="gender" required>
+            <option value="" selected></option>
+            <option value="Male">Male</option>
+            <option value="Female">Female</option>
+          </select>
+        </div>
+      </div>
+      <div>
+        <div class="details-input">
+          <label for="number"
+            >Telephone Number <span class="hash">*</span></label
+          >
+          <input
+            type="number"
+            name="number"
+            id="number"
+            placeholder="Telephone Number"
+            required />
+        </div>
+      </div>
+      <div>
+        <div class="details-input">
+          <label for="birth">Address <span class="hash">*</span></label>
+          <input
+            type="text"
+            name="address"
+            id="address"
+            placeholder="Address"
+            required />
+        </div>
+      </div>
+      <div>
+        <div class="details-input">
+          <label for="email"
+            >Email <span class="optional">(Optional)</span></label
+          >
+          <input
+            type="email"
+            name="email"
+            id="email"
+            placeholder="Email"
+            required />
+        </div>
+      </div>
+    </div>
+
+    <div class="input-submit">
+      <input type="submit" value="Add" />
+    </div>
+  </form>
+</div>
+
+<script>
+  const cardSelected = document.getElementById("card");
+  const dynamicFormContainer = document.getElementById("dynamic-form");
+
+  cardSelected.addEventListener("change", () => {
+    const selectedCard = cardSelected.value;
+    dynamicFormContainer.innerHTML = ""; // Clear any previous form
+
+    if (selectedCard === "Ghana Card" || selectedCard === "Passport") {
+      // Generate the printer or photocopier form
+      dynamicFormContainer.innerHTML = `
+          <div>
+            <div class="details-input">
+              <label for="card_number"
+                >Card Number <span class="hash">*</span></label
+              >
+              <input
+                type="text"
+                name="card_number"
+                id="card_number"
+                placeholder="Card Number"
+                required />
+            </div>
+          </div>
+              `;
+    } else if (selectedCard === "Voters ID Card") {
+      // Hide the access input for roles other than ADMIN
+      dynamicFormContainer.innerHTML = `
+          <div>
+            <div class="details-input">
+              <label for="card_number"
+                >Card Number <span class="hash">*</span></label
+              >
+              <input
+                type="number"
+                name="card_number"
+                id="card_number"
+                placeholder="Card Number"
+                required />
+            </div>
+          </div>
+              `;
+    }
+  });
+
+  const dynamicFather = document.getElementById("dynamic-form-father");
+  const father = document.getElementById("father_status");
+
+  father.addEventListener("change", () => {
+    const selectedFather = father.value;
+    dynamicFather.innerHTML = ""; // Clear any previous form
+
+    if (selectedFather === "Alive") {
+      // Generate the printer or photocopier form
+      dynamicFather.innerHTML = `
+          <div>
+            <div class="details-input">
+              <label for="f_number"
+                >Telephone Number <span class="hash">*</span></label
+              >
+              <input
+                type="number"
+                name="f_number"
+                id="f_number"
+                placeholder="Telephone Number"
+                required />
+            </div>
+          </div>
+              `;
+    }
+  });
+
+  const dynamicMother = document.getElementById("dynamic-form-mother");
+  const mother = document.getElementById("mother_status");
+
+  mother.addEventListener("change", () => {
+    const selectedMother = mother.value;
+    dynamicMother.innerHTML = ""; // Clear any previous form
+
+    if (selectedMother === "Alive") {
+      // Generate the printer or photocopier form
+      dynamicMother.innerHTML = `
+          <div>
+            <div class="details-input">
+              <label for="m_number"
+                >Telephone Number <span class="hash">*</span></label
+              >
+              <input
+                type="number"
+                name="m_number"
+                id="m_number"
+                placeholder="Telephone Number"
+                required />
+            </div>
+          </div>
+              `;
+    }
+  });
+
+  function formatWorkshopGPS(input) {
+    // Remove any existing hyphens and non-alphanumeric characters
+    let cleanValue = input.value.replace(/[^a-zA-Z0-9]/g, "");
+
+    // Check if the input has at least one character
+    if (cleanValue.length > 0) {
+      // Extract the first three characters as a prefix
+      const prefix = cleanValue.substring(0, 3);
+
+      // Check if there are remaining characters for formatting
+      if (cleanValue.length > 3) {
+        // Format the remaining characters with hyphens
+        const formattedValue =
+          prefix +
+            "-" +
+            cleanValue
+              .substring(3)
+              .match(/.{1,4}/g)
+              ?.join("-") || "";
+
+        // Limit the total length to 15 characters
+        input.value = formattedValue.slice(0, 18);
+      } else {
+        // If only three or fewer characters, set the value with the prefix
+        input.value = prefix;
+      }
+    } else {
+      // Reset the input if it's empty
+      input.value = "";
+    }
+  }
+
+  function previewImage(input) {
+    const preview = document.getElementById("preview-image");
+
+    if (input.files && input.files[0]) {
+      const reader = new FileReader();
+
+      reader.onload = function (e) {
+        preview.src = e.target.result;
+      };
+
+      reader.readAsDataURL(input.files[0]);
+    }
+  }
+</script>
+
+{% endblock %}

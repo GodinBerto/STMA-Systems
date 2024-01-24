@@ -1,0 +1,49 @@
+{% extends '/admin/base.html' %}
+{% block heading %} Stores Management {% endblock %}
+{% block content %}
+<div class="content-container">
+  <div class="head">
+    <h1>Item Registration</h1>
+  </div>
+  <form action="{{ url_for('admin_sms_update', id=sms.id) }}" method="post">
+    <div class="store-detail">
+      <h2>Item Detail</h2>
+      <div>
+
+        <div class="details-input">
+            <label for="item">Item Purchased <span class="hash">*</span></label>
+            <input type="text" name="item" id="item" placeholder="Item Purchased" value="{{sms.item}}" required />
+        </div>
+
+        <div class="details-input">
+            <label>Item Serial Number <span class="hash">*</span></label>
+            <input type="text" name="serial_number" id="serial_number" placeholder="Serial Number" value="{{sms.serial_number}}" required />
+        </div>
+
+        <div class="details-input">
+            <label>Item Quantity <span class="hash">*</span></label>
+            <input type="text" name="quantity" id="quantity" placeholder="Quantity" value="{{sms.quantity}}" required />
+        </div>
+
+        <div class="details-input">
+            <label>Date Recieved <span class="hash">*</span></label>
+            <input type="date" name="date_recieved" id="date_recieved" placeholder="Date Recieved" value="{{sms.date_recieved}}" required />
+        </div>
+      </div>
+    </div>
+    <div class="store-detail">
+      <h2>Staff</h2>
+      <div class="details-input">
+        <label for="staff">Staff Name:</label>
+        <input type="text" name="staff" id="staff" placeholder="Staff Name" value="{{ sms.staff }}" disabled required />
+        <input type="hidden" name="staff" value="{{ sms.staff }}" />
+      </div>
+    </div>
+    <div class="input-submit">
+      <input type="submit" value="Add">
+    </div>
+  </form>
+</div>
+</div>
+
+{% endblock %}

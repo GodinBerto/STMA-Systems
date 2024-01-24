@@ -49,10 +49,10 @@
       </div>
       <div class="photo-image">
         <h3>Photo Of ID:</h3>
-        {% set image = artisan.image if artisan.image is not none else
+        {% set id_image = artisan.id_image if artisan.id_image is not none else
         'user.jpg' %}
         <img
-          src="{{ url_for('static', filename='/images/' + image) }}"
+          src="{{ url_for('static', filename='/images/' + id_image) }}"
           alt="" />
       </div>
       <div class="content-text">

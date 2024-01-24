@@ -1,0 +1,59 @@
+{% extends '/super_admin/base.html' %} {% block heading %} Report {% endblock %}
+{% block content %}
+
+<!----------------------Search------------------------>
+<div class="search-container">
+  <form class="search" action="{{url_for ('artisan_search')}}" method="GET">
+    <input type="search" name="search" id="search" placeholder="Search" />
+    <input type="submit" value="Search" />
+  </form>
+</div>
+
+<!-- ================ Order Details List ================= -->
+<div class="details">
+  <div class="recentOrders">
+    <div class="cardHeader">
+      <h2>Report</h2>
+      <a href="{{url_for ('add_artisan')}}" class="btn">Add Report</a>
+    </div>
+
+    <table>
+      <thead>
+        <tr>
+          <td>ID</td>
+          <td>Artisan Name</td>
+          <td>Profession</td>
+          <td>Tel Number</td>
+          <td>Date Registered</td>
+          <td>Action</td>
+        </tr>
+      </thead>
+
+      <tbody>
+        {% for artisans in artisan %}
+        <tr>
+          <td>{{artisans.id}}</td>
+          <td>{{artisans.name}}</td>
+          <td>{{artisans.profession}}</td>
+          <td>{{artisans.phone_number}}</td>
+          <td>{{artisans.date_registered}}</td>
+          <td class="action">
+            <a href="{{ url_for('more_artisan', id=artisans.id) }}" class="btn"
+              >Details</a
+            >
+            <a
+              href="{{ url_for('delete_artisan', id=artisans.id) }}"
+              class="delete"
+              ><ion-icon name="close-outline"></ion-icon
+            ></a>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+<div class="export-container">
+  <a href="{{url_for('export_excel_asset')}}" class="export">Export to Excel</a>
+</div>
+{% endblock %}

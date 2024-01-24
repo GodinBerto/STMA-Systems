@@ -1,0 +1,33 @@
+{% extends '/admin/base.html' %} {% block heading %} Stores Management {%
+endblock %} {% block content %}
+<div class="content-container">
+  <h1>Item Details</h1>
+  <div class="all-container">
+    <div class="details-container">
+      <div class="titles">
+        <h2>Store Id:{{ sms.id }}</h2>
+      </div>
+      <div class="content-text">
+        <h3>Item Purchased:</h3>
+        <p>{{ sms.item }}</p>
+      </div>
+      <div class="content-text">
+        <h3>Item Serial Number:</h3>
+        <p>{{ sms.serial_number }}</p>
+      </div>
+      <div class="content-text">
+        <h3>Quantity:</h3>
+        <p>{{ sms.quantity }}</p>
+      </div>
+      <div class="content-text">
+        <h3>Date Recieved:</h3>
+        <p>{{ sms.date_recieved }}</p>
+      </div>
+    </div>
+    <div class="actions">
+      <a class="green" href="{{ url_for('admin_back') }}">Back</a>
+      <a class="blue" href="{{url_for('admin_sms_update', id=sms.id)}}">Edit</a>
+    </div>
+  </div>
+</div>
+{% endblock %}

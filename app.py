@@ -103,6 +103,7 @@ def index():
     create_unit_table()
     create_sms_table()
     create_artisan_table()
+    create_report_table()
 
     if request.method == 'POST':
         username = request.form.get('username')
@@ -271,13 +272,13 @@ def create_asset_table():
         conn.close()
 
 
+# Create SMS Table
 def get_sms_db_connection():
     conn_asset = sqlite3.connect('instance/sms.db')
     conn_asset.row_factory = sqlite3.Row
     return conn_asset, conn_asset.cursor()
 
 
-# Create SMS Table
 def create_sms_table():
     with table_creation_lock:
         conn, cursor = get_sms_db_connection()
@@ -295,13 +296,13 @@ def create_sms_table():
         conn.close()
 
 
+# Create Department Table
 def get_department_db_connection():
     conn = sqlite3.connect('instance/department.db')
     conn.row_factory = sqlite3.Row
     return conn, conn.cursor()
 
 
-# Create Department Table
 def create_department_table():
     with table_creation_lock:
         conn, cursor = get_department_db_connection()
@@ -373,6 +374,42 @@ def create_artisan_table():
                 home_gps text,
                 staff text,
                 FOREIGN KEY (name) REFERENCES store(name)
+                )
+        ''')
+        conn.commit()
+        conn.close()
+
+
+# Create Report Table
+def get_report_db_connection():
+    conn = sqlite3.connect('instance/report.db')
+    conn.row_factory = sqlite3.Row
+    return conn, conn.cursor()
+
+
+def create_report_table():
+    with table_creation_lock:
+        conn, cursor = get_report_db_connection()
+        cursor.execute('''
+            CREATE TABLE IF NOT EXISTS report (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                name text,
+                gender text,
+                address text,
+                phone_number number,
+                age_bracket number,
+                disability_status text,
+                unique_code text,
+                purpose text,
+                complaint_to text,
+                complaint_content text NOT NULL,
+                complaint_response text NOT NULL,
+                enquiries_content text NOT NULL,
+                enquiries_response text NOT NULL,
+                tag_number number,
+                office text,
+                receipient_name text,
+                purpose_visit text
                 )
         ''')
         conn.commit()
@@ -1994,12 +2031,11 @@ def more_artisan(id):
     return redirect(url_for('index'))
 
 
-@app.route('/add_artisan', methods=['GET', 'POST'])
+@app.route('/super_admin/artisans/add', methods=['GET', 'POST'])
 @login_required(role='SUPER ADMIN')
 def add_artisan():
     if 'user_id' in session:
-        user_id = session['user_id']  # Get the user ID from the session
-        # Retrieve user information from the database
+        user_id = session['user_id']
         user = get_user_by_id(user_id)
 
         if user:
@@ -2010,7 +2046,6 @@ def add_artisan():
             if request.method == 'POST':
                 conn, cursor = get_artisan_db_connection()
 
-                # Get data from the form for the users
                 name = request.form['name']
                 gender = request.form['gender']
                 phone = request.form['number']
@@ -2036,31 +2071,29 @@ def add_artisan():
 
                 image = request.files['image']
                 image_filename = secure_filename(image.filename)
-                image_path = os.path.join(
-                    "static/images", image_filename)
+                image_path = os.path.join("static/images", image_filename)
                 image.save(image_path)
 
                 id_image = request.files['id_image']
                 id_image_filename = secure_filename(id_image.filename)
                 id_image_path = os.path.join(
                     "static/images", id_image_filename)
-                image.save(id_image_path)
+                id_image.save(id_image_path)
 
-                # Adjust the column names in the SQL query based on your database structure
-                cursor.execute("INSERT INTO artisan (name, gender, phone_number, birth, nationality, email, id_type, id_number, home_postal, home_gps, fathers_name, fathers_status, fathers_number, mothers_name, mothers_status, mothers_number, profession, year_profession, shop_location, shop_gps, date_registered, image, id_image, staff) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
-                               (name, gender, phone, birth, nationality, email, card, card_number, postal_address, gps_address, father, father_status, f_number, mother, mother_status, m_number, profession, years, workshop, workshop_gps, registration, image_filename, id_image, staff))
+                cursor.execute(
+                    "INSERT INTO artisan (name, gender, phone_number, birth, nationality, email, id_type, id_number, home_postal, home_gps, fathers_name, fathers_status, fathers_number, mothers_name, mothers_status, mothers_number, profession, year_profession, shop_location, shop_gps, date_registered, image, id_image, staff) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
+                    (name, gender, phone, birth, nationality, email, card, card_number, postal_address, gps_address, father, father_status, f_number,
+                     mother, mother_status, m_number, profession, years, workshop, workshop_gps, registration, image_filename, id_image_filename, staff)
+                )
 
                 conn.commit()
                 conn.close()
 
                 flash("Artisan Successfully Added")
-
-                # Redirect to the home page after submission
                 return redirect(url_for('artisan'))
 
             return render_template('/super_admin/artisans/add.html', username=username, role=role, image=image)
 
-    # If the user is not logged in or an error occurs, redirect to the index page
     return redirect(url_for('index'))
 
 
@@ -2077,14 +2110,13 @@ def update_artisan(id):
             role = user['role']
             image = user['image']
 
-            # Fetch additional details for the selected department using the department_name
+            # Fetch additional details for the selected artisan using the artisan ID
             conn, cursor = get_artisan_db_connection()
-            cursor.execute(
-                "SELECT * FROM artisan WHERE id = ?", (id,))
+            cursor.execute("SELECT * FROM artisan WHERE id = ?", (id,))
             artisan_details = cursor.fetchone()
 
             if request.method == 'POST':
-                # Get data from the form for the asset
+                # Get data from the form for the artisan
                 name = request.form['name']
                 gender = request.form['gender']
                 phone = request.form['number']
@@ -2107,14 +2139,50 @@ def update_artisan(id):
                 workshop_gps = request.form['workshop_gps']
                 registration = request.form['registration']
                 staff = request.form['staff']
+                image = request.files['image']
+                id_image = request.files['id_image']
 
-                # Update the artisan in the 'artisan' table
-                conn, cursor = get_artisan_db_connection()
-                cursor.execute(
-                    'UPDATE artisan SET name=?, gender=?, phone_number=?, birth=?, nationality=?, email=?, id_type=?, id_number=?, home_postal=?, home_gps=?, fathers_name=?, fathers_status=?, fathers_numbers=?, mothers_name=?, mothers_status=?, mothers_number=?, profession=?, year_profession=?, shop_location=?, shop_gps=?, date_registered=?, staff=? WHERE id=?',
-                    (name, gender, phone, birth, nationality, email, card, card_number, postal_address, gps_address, father, father_status,
-                     f_number, mother, mother_status, m_number, profession, years, workshop, workshop_gps, registration, staff, id)
-                )
+                if father_status == 'Dead':
+                    f_number = 'None'
+
+                # Save the uploaded images
+                if image:
+                    image_filename = secure_filename(
+                        image.filename)
+                    image_path = os.path.join(
+                        "static/images", image_filename)
+                    image.save(image_path)
+
+                    cursor.execute(
+                        'UPDATE artisan SET name=?, gender=?, phone_number=?, birth=?, nationality=?, email=?, id_type=?, id_number=?, home_postal=?, home_gps=?, fathers_name=?, fathers_status=?, fathers_number=?, mothers_name=?, mothers_status=?, mothers_number=?, profession=?, year_profession=?, shop_location=?, shop_gps=?, date_registered=?, image=?, staff=? WHERE id=?',
+                        (name, gender, phone, birth, nationality, email, card, card_number, postal_address, gps_address, father, father_status,
+                         f_number, mother, mother_status, m_number, profession, years, workshop, workshop_gps, registration, image_filename, staff, id)
+                    )
+                else:
+                    cursor.execute(
+                        'UPDATE artisan SET name=?, gender=?, phone_number=?, birth=?, nationality=?, email=?, id_type=?, id_number=?, home_postal=?, home_gps=?, fathers_name=?, fathers_status=?, fathers_number=?, mothers_name=?, mothers_status=?, mothers_number=?, profession=?, year_profession=?, shop_location=?, shop_gps=?, date_registered=?, staff=? WHERE id=?',
+                        (name, gender, phone, birth, nationality, email, card, card_number, postal_address, gps_address, father, father_status,
+                         f_number, mother, mother_status, m_number, profession, years, workshop, workshop_gps, registration, staff, id)
+                    )
+
+                if id_image:
+                    id_image_filename = secure_filename(
+                        id_image.filename)
+                    id_image_path = os.path.join(
+                        "static/images", id_image_filename)
+                    id_image.save(id_image_path)
+
+                    cursor.execute(
+                        'UPDATE artisan SET name=?, gender=?, phone_number=?, birth=?, nationality=?, email=?, id_type=?, id_number=?, home_postal=?, home_gps=?, fathers_name=?, fathers_status=?, fathers_number=?, mothers_name=?, mothers_status=?, mothers_number=?, profession=?, year_profession=?, shop_location=?, shop_gps=?, date_registered=?, id_image=?, staff=? WHERE id=?',
+                        (name, gender, phone, birth, nationality, email, card, card_number, postal_address, gps_address, father, father_status,
+                         f_number, mother, mother_status, m_number, profession, years, workshop, workshop_gps, registration, id_image_filename, staff, id)
+                    )
+                else:
+                    cursor.execute(
+                        'UPDATE artisan SET name=?, gender=?, phone_number=?, birth=?, nationality=?, email=?, id_type=?, id_number=?, home_postal=?, home_gps=?, fathers_name=?, fathers_status=?, fathers_number=?, mothers_name=?, mothers_status=?, mothers_number=?, profession=?, year_profession=?, shop_location=?, shop_gps=?, date_registered=?, staff=? WHERE id=?',
+                        (name, gender, phone, birth, nationality, email, card, card_number, postal_address, gps_address, father, father_status,
+                         f_number, mother, mother_status, m_number, profession, years, workshop, workshop_gps, registration, staff, id)
+                    )
 
                 conn.commit()
 
@@ -2124,13 +2192,35 @@ def update_artisan(id):
 
             conn.close()
             if artisan_details:
-                # Pass the department details to the template
+                # Pass the artisan details to the template
                 return render_template('/super_admin/artisans/update.html', username=username, role=role, artisan=artisan_details, image=image)
             else:
-                # Flash an error message when department details are not found
+                # Flash an error message when artisan details are not found
                 flash("Artisan details not found", 'error')
                 return redirect(url_for('artisan'))
 
+    return redirect(url_for('index'))
+
+
+# Report
+@app.route('/report')
+@login_required(role='SUPER ADMIN')
+def report():
+    if 'user_id' in session:
+        user_id = session['user_id']  # Get the user ID from the session
+        # Retrieve user information from the database
+        user = get_user_by_id(user_id)
+
+        conn, cursor = get_artisan_db_connection()
+        cursor.execute("SELECT * FROM artisan")
+        artisan_list = cursor.fetchall()
+        conn.close()
+
+        if user:
+            username = user['username']
+            role = user['role']
+            image = user['image']
+            return render_template('/super_admin/report/report.html', username=username, role=role, artisan=artisan_list, image=image)  # noqa
     return redirect(url_for('index'))
 
 
@@ -2849,6 +2939,71 @@ def admin_update_asset(id):
                 flash("Asset details not found", 'error')
                 return redirect(url_for('admin_asset'))
 
+    return redirect(url_for('index'))
+
+# Profile
+
+
+@app.route('/admin_profile', methods=['GET', 'POST'])
+@login_required(role='ADMIN')
+def admin_profile():
+    if 'user_id' in session:
+        user_id = session['user_id']  # Get the user ID from the session
+        # Retrieve user information from the database
+        user = get_user_by_id(user_id)
+        if user:
+            username = user['username']
+            role = user['role']
+            password = user['password']
+            email = user['email']
+            phone = user['phone_number']
+            gender = user['gender']
+            image = user['image']  # Retrieve user's image path
+
+            if request.method == 'POST':
+                # Get data from the form for the tenant
+                fullname = request.form['fullname']
+                telnumber = request.form['telnumber']
+                gender = request.form['gender']
+                staff_email = request.form['email']
+                staff_password = request.form['password']
+
+                # Handle image upload
+                image = request.files['image']
+                if image:
+                    image_filename = secure_filename(image.filename)
+                    try:
+                        # Create the target directory if it doesn't exist
+                        image_folder = os.path.join("static", "images")
+                        os.makedirs(image_folder, exist_ok=True)
+
+                        # Save the image
+                        image_path = os.path.join(image_folder, image_filename)
+                        image.save(image_path)
+                    except FileNotFoundError as e:
+                        flash(f"Error saving image: {e}", "error")
+                    except sqlite3.Error as e:
+                        flash(f"Database error: {e}", "error")
+                else:
+                    image_filename = user['image']
+
+                # If no new image is provided, update other fields
+                conn, cursor = get_users_db_connection()
+                cursor.execute("""
+                    UPDATE users
+                    SET username=?, phone_number=?, gender=?, email=?, password=?, image=?
+                    WHERE id=?
+                """, (fullname, telnumber, gender, staff_email, staff_password, image_filename, user_id,))
+                conn.commit()
+                conn.close()
+
+                flash('Profile updated successfully', 'success')
+
+                # Redirect to the home page after submission
+                return redirect(url_for('admin_profile'))
+            return render_template('/admin/profile.html', username=username, role=role, password=password, email=email, phone=phone, gender=gender, image=image)  # noqa
+
+    # If the user is not logged in or an error occurs, redirect to the index page
     return redirect(url_for('index'))
 
 

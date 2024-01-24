@@ -74,6 +74,30 @@ Staff
     const roleSelected = document.getElementById("role");
     const dynamicFormContainer = document.getElementById("dynamic-form");
 
+    if (roleSelected.value === "DATA ENTRY") {
+        // Generate the printer or photocopier form
+        dynamicFormContainer.innerHTML = `
+        <div class="details-input" required>
+            <label>Access <span>*</span></label>
+            <select name="access" id="access" required>
+                <option value="" {% if staff.access=='' %}selected{% endif %}></option>
+                <option value="Store Rent" {% if staff.access=='Store Rent' %}selected{% endif %}>Store Rent</option>
+                <option value="Stores Management" {% if staff.access=='Stores Management' %}selected{% endif %}>Stores Management</option>
+                <option value="Assets" {% if staff.access=='Assets' %}selected{% endif %}>Assets</option>
+            </select>
+        </div>
+        `;
+    } else if (roleSelected.value !== "ADMIN") {
+        // Hide the access input for roles other than ADMIN
+        dynamicFormContainer.innerHTML = `
+        <style>
+            #dynamic-form {
+                display: none;
+            }
+        </style>
+        `;
+    }
+
     roleSelected.addEventListener("change", () => {
         const selectedRole = roleSelected.value;
         if (selectedRole === "DATA ENTRY") {
