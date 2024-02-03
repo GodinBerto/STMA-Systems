@@ -1,6 +1,31 @@
 {% extends '/super_admin/base.html' %} {% block heading %} Stores Management {%
 endblock %} {% block content %}
 
+<!----------------------Cards------------------------->
+<div class="cardBox2">
+  <a class="card" href="#">
+    <div>
+      <div class="numbers">{{item_count}}</div>
+      <div class="cardName">Total Items Received</div>
+    </div>
+
+    <div class="iconBx">
+      <ion-icon name="folder-open-outline"></ion-icon>
+    </div>
+  </a>
+
+  <a class="card" href="#dispatch">
+    <div>
+      <div class="numbers">{{dispatch_count}}</div>
+      <div class="cardName">Total Items Dispatched</div>
+    </div>
+
+    <div class="iconBx">
+      <ion-icon name="paper-plane-outline"></ion-icon>
+    </div>
+  </a>
+</div>
+
 <!----------------------Search------------------------>
 <div class="search-container">
   <form class="search" action="{{url_for ('sms_search')}}" method="GET">
@@ -9,12 +34,25 @@ endblock %} {% block content %}
   </form>
 </div>
 
+<!---------------------Dropdown-------------------------->
+<div class="action-drop">
+  <div class="drop-btn">
+    <button id="dropdown">
+      Actions <ion-icon name="chevron-down-outline"></ion-icon>
+    </button>
+  </div>
+  <div class="dropdownMenu" id="dropdownMenu">
+    <a href="{{url_for ('sms_add')}}">Receive</a>
+    <a href="{{url_for ('sms_dispatch')}}">Dispatch</a>
+    <a href="{{url_for('export_excel_stores')}}">Export</a>
+  </div>
+</div>
+
 <!-- ================ Order Details List ================= -->
 <div class="details">
   <div class="recentOrders">
     <div class="cardHeader">
-      <h2>Stores Management</h2>
-      <a href="{{url_for ('sms_add')}}" class="btn">Add Item</a>
+      <h2>Items Received</h2>
     </div>
 
     <table>
@@ -23,19 +61,25 @@ endblock %} {% block content %}
           <td>ID</td>
           <td>Item Purchased</td>
           <td>Item S/N</td>
-          <td>Quantity</td>
+          <td>Quantity Recieved</td>
+          <td>Quanlity Requested</td>
+          <td>Supplier/Company Name</td>
+          <td>Requesting Department</td>
           <td>Date Recieved</td>
           <td>Action</td>
         </tr>
       </thead>
 
       <tbody>
-        {% for item in sms %}
+        {% for item in sms_list_receiver %}
         <tr>
           <td>{{item.id}}</td>
           <td>{{item.item}}</td>
           <td>{{item.serial_number}}</td>
-          <td>{{item.quantity}}</td>
+          <td>{{item.quantity_received}}</td>
+          <td>{{item.quantity_requested}}</td>
+          <td>{{item.supplier_name}}</td>
+          <td>{{item.requested_dept}}</td>
           <td>{{item.date_recieved}}</td>
           <td class="action">
             <a href="{{ url_for('more_sms', id=item.id) }}" class="btn"
@@ -51,9 +95,49 @@ endblock %} {% block content %}
     </table>
   </div>
 </div>
-<div class="export-container">
-  <a href="{{url_for('export_excel_stores')}}" class="export"
-    >Export to Excel</a
-  >
+
+<div class="details" id="dispatch">
+  <div class="recentOrders">
+    <div class="cardHeader">
+      <h2>Items Dispatched</h2>
+    </div>
+
+    <table>
+      <thead>
+        <tr>
+          <td>ID</td>
+          <td>Item</td>
+          <td>Quantity</td>
+          <td>Date Recieved</td>
+          <td>Action</td>
+        </tr>
+      </thead>
+
+      <tbody>
+        {% for items in sms_list_dispatch %}
+        <tr>
+          <td>{{items.id}}</td>
+          <td>{{items.item}}</td>
+          <td>{{items.quantity}}</td>
+          <td>{{items.date_recieved}}</td>
+          <td class="action">
+            <a
+              href="{{ url_for('more_sms_dispatch', id=items.id) }}"
+              class="btn"
+              >Details</a
+            >
+            <a
+              href="{{ url_for('sms_delete_dispatch', id=items.id) }}"
+              class="delete"
+              ><ion-icon name="close-outline"></ion-icon
+            ></a>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
 </div>
+
+<script></script>
 {% endblock %}

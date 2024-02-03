@@ -110,11 +110,11 @@
                 </li>
 
                 <li>
-                  <a href="{{url_for('report')}}">
+                  <a href="{{url_for('cs')}}">
                     <span class="icon">
-                      <ion-icon name="clipboard-outline"></ion-icon>
+                      <ion-icon name="id-card-outline"></ion-icon>
                     </span>
-                    <span class="title">Report</span>
+                    <span class="title">Client Service Unit</span>
                   </a>
                 </li>
 
@@ -210,6 +210,14 @@
         user.classList.toggle("active");
         user_content.classList.toggle("active");
         user_profile.classList.toggle("active");
+      };
+
+      const dropdown = document.getElementById("dropdown");
+      const dropdownMenu = document.getElementById("dropdownMenu");
+
+      dropdown.onclick = function () {
+        dropdownMenu.classList.toggle("drop");
+        console.log("Clicked");
       };
     </script>
 

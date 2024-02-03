@@ -1,0 +1,68 @@
+{% extends '/super_admin/base.html' %} {% block heading %} Client Service Unit
+{% endblock %} {% block content %}
+
+<!----------------------Search------------------------>
+<div class="search-container">
+  <form class="search" action="{{url_for ('cs_search')}}" method="GET">
+    <input type="search" name="search" id="search" placeholder="Search" />
+    <input type="submit" value="Search" />
+  </form>
+</div>
+
+<!---------------------Dropdown-------------------------->
+<div class="action-drop">
+  <div class="drop-btn">
+    <button id="dropdown">
+      Actions <ion-icon name="chevron-down-outline"></ion-icon>
+    </button>
+  </div>
+  <div class="dropdownMenu" id="dropdownMenu">
+    <a href="{{url_for ('add_cs')}}">Add</a>
+    <a href="{{url_for('export_excel_stores')}}">Export</a>
+  </div>
+</div>
+
+<!-- ================ Order Details List ================= -->
+<div class="details">
+  <div class="recentOrders">
+    <div class="cardHeader">
+      <h2>Client Service Unit</h2>
+    </div>
+
+    <table>
+      <thead>
+        <tr>
+          <td>ID</td>
+          <td>Name</td>
+          <td>Tel Number</td>
+          <td>Purpose</td>
+          <td>Unique Code</td>
+          <td>Date Registered</td>
+          <td>Action</td>
+        </tr>
+      </thead>
+
+      <tbody>
+        {% for csu in cs %}
+        <tr>
+          <td>{{csu.id}}</td>
+          <td>{{csu.name}}</td>
+          <td>{{csu.phone_number}}</td>
+          <td>{{csu.purpose}}</td>
+          <td>{{csu.unique_code}}</td>
+          <td>{{csu.date_time}}</td>
+          <td class="action">
+            <a href="{{ url_for('more_cs', id=csu.id) }}" class="btn"
+              >Details</a
+            >
+            <a href="{{ url_for('delete_cs', id=csu.id) }}" class="delete"
+              ><ion-icon name="close-outline"></ion-icon
+            ></a>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

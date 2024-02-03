@@ -1,0 +1,106 @@
+{% extends '/super_admin/base.html' %} {% block heading %} Client Service Unit
+{% endblock %} {% block content %}
+<div class="content-container">
+  <div class="head">
+    <h1>Response</h1>
+  </div>
+  <form
+    action="{{ url_for('response_cs', id=cs.id) }}"
+    method="post"
+    enctype="multipart/form-data">
+    <h2>Details</h2>
+    <div class="details-input">
+      <label for="staff">Unique Code:</label>
+      <input
+        type="text"
+        name="unique_code"
+        id="unique_code"
+        placeholder="Unique Code"
+        value="{{ cs.unique_code }}"
+        disabled
+        required />
+      <input type="hidden" name="unique_code" value="{{ cs.unique_code }}" />
+    </div>
+
+    <div class="details-input">
+      <label for="staff">Telephone Number:</label>
+      <input
+        type="text"
+        name="phone_number"
+        id="phone_number"
+        placeholder="Telephone Number"
+        value="{{ cs.phone_number }}"
+        disabled
+        required />
+      <input type="hidden" name="phone_number" value="{{ cs.phone_number }}" />
+    </div>
+
+    <div class="details-input">
+      <input type="hidden" name="purpose" value="{{ cs.purpose }}" />
+    </div>
+
+    {% if cs.purpose == "Complaint" %}
+    <div class="details-input">
+      <div class="textfield">
+        <label>Complaint <span class="hash">*</span></label>
+        <textarea
+          name="conpliant_textarea"
+          id="conplaint_textarea"
+          cols="20"
+          rows="20"
+          placeholder="Type here"
+          readonly>
+        {{ cs.complaint_content }}</textarea
+        >
+      </div>
+    </div>
+    <div class="details-input">
+      <div class="textfield">
+        <label>Response <span class="hash">*</span></label>
+        <textarea
+          name="response_textarea"
+          id="response_textarea"
+          cols="30"
+          rows="20"
+          placeholder="Type here">
+          {{ cs.complaint_response }}</textarea
+        >
+      </div>
+    </div>
+
+    {% elif cs.purpose == "Enquiries" %}
+    <div class="details-input">
+      <div class="textfield">
+        <label>Enquiries <span class="hash">*</span></label>
+        <textarea
+          name="enquiries_textarea"
+          id="enquiries_textarea"
+          cols="30"
+          rows="20"
+          placeholder="Type here"
+          readonly>
+        {{cs.enquiries_content}}</textarea
+        >
+      </div>
+    </div>
+    <div class="details-input">
+      <div class="textfield">
+        <label>Response <span class="hash">*</span></label>
+        <textarea
+          name="response_textarea"
+          id="response_textarea"
+          cols="30"
+          rows="20"
+          placeholder="Type here">
+          {{ cs.enquiries_response }}</textarea
+        >
+      </div>
+    </div>
+    {% endif %}
+
+    <div class="input-submit">
+      <input type="submit" value="Submit" />
+    </div>
+  </form>
+</div>
+{% endblock %}

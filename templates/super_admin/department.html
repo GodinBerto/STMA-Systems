@@ -22,7 +22,7 @@ endblock %} {% block content %}
         <tr>
           <td>ID</td>
           <td>Department Name</td>
-          <td>Officer Incharge</td>
+          <td>HOD/HOU</td>
           <td>Action</td>
         </tr>
       </thead>
@@ -32,7 +32,7 @@ endblock %} {% block content %}
         <tr>
           <td>{{department.id}}</td>
           <td>{{department.department_name}}</td>
-          <td>{{department.officer}}</td>
+          <td>{{department.hod}}</td>
           <td class="action">
             <a
               href="{{ url_for('more_department', department_name=department.department_name) }}"

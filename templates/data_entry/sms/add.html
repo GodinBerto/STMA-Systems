@@ -11,7 +11,7 @@
       <div>
 
         <div class="details-input">
-            <label for="item">Item Purchased <span class="hash">*</span></label>
+            <label for="item">Item Received <span class="hash">*</span></label>
             <input type="text" name="item" id="item" placeholder="Item Purchased" required />
         </div>
 
@@ -21,8 +21,28 @@
         </div>
 
         <div class="details-input">
-            <label>Item Quantity <span class="hash">*</span></label>
-            <input type="text" name="quantity" id="quantity" placeholder="Quantity" required />
+          <label>Item Quantity Requested <span class="hash">*</span></label>
+          <input type="number" name="requested_quantity" id="requested_quantity" placeholder="Quantity Requested" required />
+        </div>
+
+        <div class="details-input">
+          <label>Item Quantity Received <span class="hash">*</span></label>
+          <input type="number" name="received_quantity" id="received_quantity" placeholder="Quantity Received" required />
+        </div>
+        
+        <div class="details-input">
+          <label>Difference <span class="hash">*</span></label>
+          <input type="number" name="difference" id="difference" placeholder="Difference" readonly required />
+        </div>               
+
+        <div class="details-input">
+          <label>Requesting Department/Unit <span class="hash">*</span></label>
+          <input type="text" name="department" id="department" placeholder="Requesting Department/Unit" required />
+        </div>
+        
+        <div class="details-input">
+          <label>Suppliar/Company Name <span class="hash">*</span></label>
+          <input type="text" name="supplier" id="supplier" placeholder="Suppliar/Company Name" required />
         </div>
 
         <div class="details-input">
@@ -35,7 +55,7 @@
       <h2>Staff</h2>
       <div class="details-input">
         <label for="staff">Staff Name:</label>
-        <input type="text" name="staff" id="staff" placeholder="Staff Name" value="{{ username }}" disabled required />
+        <input type="text" name="staff" id="staff" placeholder="Staff Name" value="{{ username }}" readonly required />
         <input type="hidden" name="staff" value="{{ username }}" />
       </div>
     </div>
@@ -45,5 +65,30 @@
   </form>
 </div>
 </div>
+
+<script>
+  // Get references to the input fields
+  const receivedQuantityInput = document.getElementById("received_quantity");
+  const requestedQuantityInput = document.getElementById("requested_quantity");
+  const differenceInput = document.getElementById("difference");
+
+  // Add input event listeners
+  receivedQuantityInput.addEventListener("input", updateDifference);
+  requestedQuantityInput.addEventListener("input", updateDifference);
+
+  // Function to calculate and update the difference
+  function updateDifference() {
+    const receivedQuantity = parseFloat(receivedQuantityInput.value) || 0;
+    const requestedQuantity = parseFloat(requestedQuantityInput.value) || 0;
+
+    // Calculate the difference
+    const difference = requestedQuantity - receivedQuantity;
+
+    // Update the "Difference" input field
+    differenceInput.value = difference;
+  }
+</script>
+
+
 
 {% endblock %}

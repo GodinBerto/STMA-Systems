@@ -1,0 +1,250 @@
+{% extends '/super_admin/base.html' %} {% block heading %} Client Service Unit
+{% endblock %} {% block content %}
+<div class="content-container">
+  <div class="head">
+    <h1>Add Report</h1>
+  </div>
+  <form
+    action="{{ url_for('add_cs') }}"
+    method="post"
+    enctype="multipart/form-data">
+    <div class="store-detail">
+      <h2>Personal Details</h2>
+
+      <div>
+        <div class="details-input">
+          <label for="name">First Name <span class="hash">*</span></label>
+          <input
+            type="text"
+            name="first_name"
+            id="first_name"
+            placeholder="Name"
+            required />
+        </div>
+      </div>
+      <div>
+        <div class="details-input">
+          <label for="name">Last Name <span class="hash">*</span></label>
+          <input
+            type="text"
+            name="last_name"
+            id="last_name"
+            placeholder="Name"
+            required />
+        </div>
+      </div>
+      <div>
+        <div class="details-input">
+          <label>Gender <span>*</span></label>
+          <select name="gender" id="gender" required>
+            <option value="" selected></option>
+            <option value="Male">Male</option>
+            <option value="Female">Female</option>
+          </select>
+        </div>
+      </div>
+      <div>
+        <div class="details-input">
+          <label for="number"
+            >Telephone Number <span class="hash">*</span></label
+          >
+          <input
+            type="number"
+            name="number"
+            id="number"
+            placeholder="Telephone Number"
+            required />
+        </div>
+      </div>
+      <div>
+        <div class="details-input">
+          <label for="birth">Address <span class="hash">*</span></label>
+          <input
+            type="text"
+            name="address"
+            id="address"
+            placeholder="Address"
+            required />
+        </div>
+      </div>
+      <div class="details-input">
+        <div class="checkbox_container">
+          <label for="age_bracket" class="age"
+            >Age Bracket <span class="hash">*</span></label
+          >
+          <div class="checkbox">
+            <p>Under 18</p>
+            <input
+              type="checkbox"
+              name="age_bracket"
+              id="age_bracket1"
+              value="Under 18" />
+          </div>
+          <div class="checkbox">
+            <p>18-40</p>
+            <input
+              type="checkbox"
+              name="age_bracket"
+              id="age_bracket2"
+              value="18-40" />
+          </div>
+          <div class="checkbox">
+            <p>41-60</p>
+            <input
+              type="checkbox"
+              name="age_bracket"
+              id="age_bracket3"
+              value="41-60" />
+          </div>
+        </div>
+      </div>
+      <div>
+        <div class="details-input">
+          <label>Disability Status <span class="hash">*</span></label>
+          <select name="disability_status" id="disability_status" required>
+            <option value="" selected></option>
+            <option value="Disabled">Disabled</option>
+            <option value="None">None</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <div>
+      <div class="details-input">
+        <label>Purpose <span class="hash">*</span></label>
+        <select name="purpose" id="purpose" required>
+          <option value="" selected></option>
+          <option value="Complaint">Complaint</option>
+          <option value="Enquiries">Enquiries</option>
+          <option value="Visit">Visit</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="dynamic-textarea" id="dynamic_form"></div>
+
+    <div class="input-submit">
+      <input type="submit" value="Submit" />
+    </div>
+  </form>
+</div>
+
+<script>
+  const purpose = document.getElementById("purpose");
+  const dynamicForm = document.getElementById("dynamic_form");
+
+  purpose.addEventListener("change", () => {
+    const purposeValue = purpose.value;
+    dynamicForm.innerHTML = "";
+
+    if (purposeValue === "Complaint") {
+      dynamicForm.innerHTML = `
+      <h2>Complaint Details</h2>
+      <div class="details-input">
+        <label>Complainant <span class="hash">*</span></label>
+        <select name="complainant" id="complainant" required>
+          <option value="" selected></option>
+          <option value="Enviromental">Enviromental</option>
+          <option value="Physical Planning">Physical Planning</option>
+          <option value="Waste Management">Waste Management</option>
+        </select>
+      </div>
+
+      <div class="details-input">
+        <div class="textfield">
+          <label>Type Your Complaint <span class="hash">*</span></label>
+          <textarea
+            name="complaint_textarea"
+            id="complaint_textarea"
+            cols="30"
+            rows="20"
+            placeholder="Type here"></textarea>
+        </div>
+      </div>
+      `;
+    } else if (purposeValue === "Enquiries") {
+      dynamicForm.innerHTML = `
+      <h2>Enquiries Details</h2>
+      <div class="details-input">
+        <div class="textfield">
+          <label>Enquiries <span class="hash">*</span></label>
+          <textarea
+            name="enquiries_textarea"
+            id="enquiries_textarea"
+            cols="30"
+            rows="20"
+            placeholder="Type here"></textarea>
+        </div>
+      </div>
+      `;
+    } else if (purposeValue === "Visit") {
+      dynamicForm.innerHTML = `
+      <h2>Visit Details</h2>
+      <div>
+        <div class="details-input">
+          <label for="birth">Visitors Tag Number <span class="hash">*</span></label>
+          <input
+            type="text"
+            name="tag_number"
+            id="tag_number"
+            placeholder="Visitors Tag Number"
+            required />
+        </div>
+      </div>
+      <div>
+        <div class="details-input">
+          <label for="birth">Office <span class="hash">*</span></label>
+          <input
+            type="text"
+            name="office"
+            id="office"
+            placeholder="Office"
+            required />
+        </div>
+      </div>
+      <div>
+        <div class="details-input">
+          <label for="birth">Receipient Name <span class="hash">*</span></label>
+          <input
+            type="text"
+            name="receipient_name"
+            id="receipient_name"
+            placeholder="Receipient Name"
+            required />
+        </div>
+      </div>
+      <div>
+        <div class="details-input">
+          <label for="birth">Purpose Of Visit <span class="hash">*</span></label>
+          <input
+            type="text"
+            name="purpose_visit"
+            id="purpose_visit"
+            placeholder="Purpose Of Visit"
+            required />
+        </div>
+      </div>
+      `;
+    }
+  });
+
+  document.addEventListener("DOMContentLoaded", function () {
+    var checkboxes = document.querySelectorAll('input[name="age_bracket"]');
+
+    checkboxes.forEach(function (checkbox) {
+      checkbox.addEventListener("change", function () {
+        if (this.checked) {
+          // Uncheck other checkboxes
+          checkboxes.forEach(function (otherCheckbox) {
+            if (otherCheckbox !== checkbox) {
+              otherCheckbox.checked = false;
+            }
+          });
+        }
+      });
+    });
+  });
+</script>
+
+{% endblock %}

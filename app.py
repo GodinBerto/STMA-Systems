@@ -7,6 +7,7 @@ from reportlab.pdfgen import canvas
 import csv
 from functools import wraps
 import sqlite3
+from datetime import datetime
 import threading
 from io import BytesIO
 
@@ -101,9 +102,10 @@ def index():
     create_asset_table()
     create_department_table()
     create_unit_table()
-    create_sms_table()
+    create_sms_received_table()
+    create_sms_dispatch_table()
     create_artisan_table()
-    create_report_table()
+    create_cs_table()
 
     if request.method == 'POST':
         username = request.form.get('username')
@@ -264,7 +266,7 @@ def create_asset_table():
                 toner text,
                 division text,
                 date_purchased date,
-                officer text,
+                user text,
                 staff text
                 )
         ''')
@@ -279,16 +281,42 @@ def get_sms_db_connection():
     return conn_asset, conn_asset.cursor()
 
 
-def create_sms_table():
+def create_sms_received_table():
     with table_creation_lock:
         conn, cursor = get_sms_db_connection()
         cursor.execute('''
-            CREATE TABLE IF NOT EXISTS sms (
+            CREATE TABLE IF NOT EXISTS stores_received (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 item text,
                 serial_number text,
-                quantity number,
+                quantity_received number,
+                quantity_requested number,
+                supplier_name text,
+                requested_dept text,
                 date_recieved date,
+                difference number,
+                staff text
+                )
+        ''')
+        conn.commit()
+        conn.close()
+
+
+def create_sms_dispatch_table():
+    with table_creation_lock:
+        conn, cursor = get_sms_db_connection()
+        cursor.execute('''
+            CREATE TABLE IF NOT EXISTS stores_dispatch (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                item text,
+                type text,
+                department text,
+                officer_receiver text,
+                name_receiver text,
+                phone_number number,
+                quantity text,
+                date_recieved date,
+                description text,
                 staff text
                 )
         ''')
@@ -310,7 +338,7 @@ def create_department_table():
             CREATE TABLE IF NOT EXISTS department (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 department_name text,
-                officer text
+                hod text
                 )
         ''')
         conn.commit()
@@ -380,18 +408,18 @@ def create_artisan_table():
         conn.close()
 
 
-# Create Report Table
-def get_report_db_connection():
-    conn = sqlite3.connect('instance/report.db')
+# Create cs Table
+def get_cs_db_connection():
+    conn = sqlite3.connect('instance/cs.db')
     conn.row_factory = sqlite3.Row
     return conn, conn.cursor()
 
 
-def create_report_table():
+def create_cs_table():
     with table_creation_lock:
-        conn, cursor = get_report_db_connection()
+        conn, cursor = get_cs_db_connection()
         cursor.execute('''
-            CREATE TABLE IF NOT EXISTS report (
+            CREATE TABLE IF NOT EXISTS cs (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 name text,
                 gender text,
@@ -402,21 +430,24 @@ def create_report_table():
                 unique_code text,
                 purpose text,
                 complaint_to text,
-                complaint_content text NOT NULL,
-                complaint_response text NOT NULL,
-                enquiries_content text NOT NULL,
-                enquiries_response text NOT NULL,
+                complaint_content text,
+                complaint_response text,
+                enquiries_content text,
+                enquiries_response text,
                 tag_number number,
                 office text,
                 receipient_name text,
-                purpose_visit text
+                purpose_visit text,
+                date_time date
                 )
         ''')
         conn.commit()
         conn.close()
-
+#
 
 # --------------------------------------------------------------Super Admin------------------------------------------------------------------------------
+
+
 @app.route('/dashboard')
 @login_required(role='SUPER ADMIN')
 def dashboard():
@@ -468,7 +499,7 @@ def dashboard():
         conn.close()
 
         conn, cursor = get_sms_db_connection()
-        cursor.execute("SELECT COUNT(id) FROM sms")
+        cursor.execute("SELECT COUNT(id) FROM stores_received")
         item_count = cursor.fetchone()[0]
         conn.close()
 
@@ -1048,7 +1079,7 @@ def asset_add():
                 unit = request.form['unit']
                 device = request.form['device']
                 date_purchased = request.form['date_purchased']
-                officer = request.form['officer']
+                using = request.form['using']
                 serial_number = request.form['serial_number']
                 embosenuit = request.form['embosenuit']
                 status = request.form['status']
@@ -1064,27 +1095,27 @@ def asset_add():
                 if toner is not None and capacity is not None:
                     cursor.execute('''
                         INSERT INTO asset (department, unit, device_name, brand, serial_number, embosenuit_number,
-                        device_status, toner, device_capacity, division, date_purchased, officer, staff)
+                        device_status, toner, device_capacity, division, date_purchased, user, staff)
                         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-                    ''', (department, unit, device, brand, serial_number, embosenuit, status, toner, capacity, division, date_purchased, officer, staff))
+                    ''', (department, unit, device, brand, serial_number, embosenuit, status, toner, capacity, division, date_purchased, using, staff))
                 elif toner is not None:
                     cursor.execute('''
                         INSERT INTO asset (department, unit, device_name, brand, serial_number, embosenuit_number,
-                        device_status, toner, division, date_purchased, officer, staff)
+                        device_status, toner, division, date_purchased, user, staff)
                         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-                    ''', (department, unit, device, brand, serial_number, embosenuit, status, toner, division, date_purchased, officer, staff))
+                    ''', (department, unit, device, brand, serial_number, embosenuit, status, toner, division, date_purchased, using, staff))
                 elif capacity is not None:
                     cursor.execute('''
                         INSERT INTO asset (department, unit, device_name, brand, serial_number, embosenuit_number,
-                        device_status, device_capacity, division, date_purchased, officer, staff)
+                        device_status, device_capacity, division, date_purchased, user, staff)
                         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-                    ''', (department, unit, device, brand, serial_number, embosenuit, status, capacity, division, date_purchased, officer, staff))
+                    ''', (department, unit, device, brand, serial_number, embosenuit, status, capacity, division, date_purchased, using, staff))
                 else:
                     cursor.execute('''
                         INSERT INTO asset (department, unit, device_name, brand, serial_number, embosenuit_number,
-                        device_status, division, date_purchased, officer, staff)
+                        device_status, division, date_purchased, user, staff)
                         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-                    ''', (department, unit, device, brand, serial_number, embosenuit, status, division, date_purchased, officer, staff))
+                    ''', (department, unit, device, brand, serial_number, embosenuit, status, division, date_purchased, using, staff))
                 conn.commit()
                 conn.close()
 
@@ -1133,7 +1164,7 @@ def update_asset(id):
                 unit = request.form['unit']
                 device = request.form['device']
                 date_purchased = request.form['date_purchased']
-                officer = request.form['officer']
+                using = request.form['using']
                 serial_number = request.form['serial_number']
                 embosenuit = request.form['embosenuit']
                 status = request.form['status']
@@ -1146,7 +1177,7 @@ def update_asset(id):
                 # Update the asset in the 'department' table
                 conn, cursor = get_asset_db_connection()
                 cursor.execute(
-                    'UPDATE asset SET department=?, unit=?, division=?, device_name=?, date_purchased=?, serial_number=?, embosenuit_number=?, brand=?, toner=?, device_capacity=?, device_status=?, officer=? WHERE id=?', (department, unit, division, device, date_purchased, serial_number, embosenuit, brand, toner, capacity, status, officer, id))
+                    'UPDATE asset SET department=?, unit=?, division=?, device_name=?, date_purchased=?, serial_number=?, embosenuit_number=?, brand=?, toner=?, device_capacity=?, device_status=?, user=? WHERE id=?', (department, unit, division, device, date_purchased, serial_number, embosenuit, brand, toner, capacity, status, using, id))
 
                 conn.commit()
 
@@ -1176,15 +1207,30 @@ def sms():
         user = get_user_by_id(user_id)
 
         conn, cursor = get_sms_db_connection()
-        cursor.execute("SELECT * FROM sms")
-        sms_list = cursor.fetchall()
+        cursor.execute("SELECT COUNT(id) FROM stores_received")
+        item_count = cursor.fetchone()[0]
+        conn.close()
+
+        conn, cursor = get_sms_db_connection()
+        cursor.execute("SELECT COUNT(id) FROM stores_dispatch")
+        dispatch_count = cursor.fetchone()[0]
+        conn.close()
+
+        conn, cursor = get_sms_db_connection()
+        cursor.execute("SELECT * FROM stores_received")
+        sms_list_receiver = cursor.fetchall()
+        conn.close()
+
+        conn, cursor = get_sms_db_connection()
+        cursor.execute("SELECT * FROM stores_dispatch")
+        sms_list_dispatch = cursor.fetchall()
         conn.close()
 
         if user:
             username = user['username']
             role = user['role']
             image = user['image']
-            return render_template('/super_admin/sms.html', username=username, role=role, image=image, sms=sms_list)  # noqa
+            return render_template('/super_admin/sms.html', username=username, role=role, image=image, sms_list_receiver=sms_list_receiver, item_count=item_count, dispatch_count=dispatch_count, sms_list_dispatch=sms_list_dispatch)  # noqa
     return redirect(url_for('index'))
 
 
@@ -1205,17 +1251,21 @@ def sms_search():
 
         # Fetch data from the "stores" table that matches the search query
         conn, cursor = get_sms_db_connection()
-        cursor.execute("SELECT * FROM sms WHERE item LIKE ? OR serial_number LIKE ?",
+        cursor.execute("SELECT * FROM stores_received WHERE item LIKE ? OR serial_number LIKE ?",
+                       ('%' + search_query + '%', '%' + search_query + '%'))
+        search_results_receiver = cursor.fetchall()
+
+        cursor.execute("SELECT * FROM stores_dispatch WHERE item LIKE ? OR name_receiver LIKE ?",
                        ('%' + search_query + '%', '%' + search_query + '%'))
 
-        search_results = cursor.fetchall()
+        search_results_dispatch = cursor.fetchall()
         conn.close()
 
         if user:
             username = user['username']
             role = user['role']
             image = user['image']
-            return render_template('/super_admin/sms.html', username=username, role=role, sms=search_results, image=image)  # noqa
+            return render_template('/super_admin/sms.html', username=username, role=role, sms_receiver=search_results_receiver, sms_dispatch=search_results_dispatch,  image=image)  # noqa
     # If the user is not logged in or an error occurs, redirect to the index page# noqa
     return redirect(url_for('index'))
 
@@ -1232,7 +1282,33 @@ def sms_delete(id):
 
             # Delete the record with the specified store_id
             conn, cursor = get_sms_db_connection()
-            cursor.execute("DELETE FROM sms WHERE id=?",
+            cursor.execute("DELETE FROM stores_received WHERE id=?",
+                           (id,))
+
+            conn.commit()
+            conn.close()
+
+            username = user['username']
+            role = user['role']
+            image = user['image']
+        return redirect(url_for('sms', username=username, role=role, image=image))
+    # If the user is not logged in or an error occurs, redirect to the index page
+    return redirect(url_for('index'))
+
+
+@app.route('/sms_delete_dispatch/<int:id>')
+@login_required(role='SUPER ADMIN')
+def sms_delete_dispatch(id):
+    if 'user_id' in session:
+        user_id = session['user_id']
+        # Retrieve user information from the database
+        user = get_user_by_id(user_id)
+
+        if user:
+
+            # Delete the record with the specified store_id
+            conn, cursor = get_sms_db_connection()
+            cursor.execute("DELETE FROM stores_dispatch WHERE id=?",
                            (id,))
 
             conn.commit()
@@ -1263,13 +1339,46 @@ def more_sms(id):
             conn, cursor = get_sms_db_connection()
 
             cursor.execute(
-                "SELECT * FROM sms WHERE id = ?", (id,))
+                "SELECT * FROM stores_received WHERE id = ?", (id,))
             sms_details = cursor.fetchone()
             conn.close()
 
             if sms_details:
                 # Pass the store details to the template
                 return render_template('/super_admin/sms/more.html', username=username, role=role, sms=sms_details, image=image)
+            else:
+                # Flash an error message when store details are not found
+                flash("Asset details not found", 'error')
+                return redirect(url_for('sms'))
+
+    # If the user is not logged in or an error occurs, redirect to the index page
+    return redirect(url_for('index'))
+
+
+@app.route('/more_sms_dispatch/<int:id>')
+@login_required(role='SUPER ADMIN')
+def more_sms_dispatch(id):
+    if 'user_id' in session:
+        user_id = session['user_id']
+        # Retrieve user information from the database
+        user = get_user_by_id(user_id)
+
+        if user:
+            username = user['username']
+            role = user['role']
+            image = user['image']
+
+            # Fetch additional details for the selected store using the store_id
+            conn, cursor = get_sms_db_connection()
+
+            cursor.execute(
+                "SELECT * FROM stores_dispatch WHERE id = ?", (id,))
+            sms_details_dispatch = cursor.fetchone()
+            conn.close()
+
+            if sms_details_dispatch:
+                # Pass the store details to the template
+                return render_template('/super_admin/sms/more-dispatch.html', username=username, role=role, sms=sms_details_dispatch, image=image)
             else:
                 # Flash an error message when store details are not found
                 flash("Asset details not found", 'error')
@@ -1294,17 +1403,20 @@ def sms_add():
             if request.method == 'POST':
                 item = request.form['item'].upper()
                 serial_number = request.form['serial_number'].upper()
-                quantity = request.form['quantity']
+                quantity_requested = request.form['requested_quantity']
+                quantity_received = request.form['received_quantity']
                 date_recieved = request.form['date_recieved']
-
+                differnce = request.form['difference']
+                supplier = request.form['supplier']
+                department = request.form['department']
                 staff = request.form['staff']
 
                 conn, cursor = get_sms_db_connection()
 
                 cursor.execute('''
-                    INSERT INTO sms (item, serial_number, quantity, date_recieved, staff)
-                    VALUES (?, ?, ?, ?, ?)
-                ''', (item, serial_number, quantity, date_recieved, staff))
+                    INSERT INTO stores_received (item, serial_number, quantity_requested, quantity_received, date_recieved, staff, difference, supplier_name, requested_dept)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                ''', (item, serial_number, quantity_requested, quantity_received, date_recieved, staff, differnce, supplier, department))
 
                 conn.commit()
                 conn.close()
@@ -1315,6 +1427,51 @@ def sms_add():
 
             # Render the template with username and role
             return render_template('super_admin/sms/add.html', username=username, role=role, image=image)
+
+    # If the user is not logged in or an error occurs, redirect to the index page
+    return redirect(url_for('index'))
+
+
+@app.route('/sms_dispatch', methods=['GET', 'POST'])
+@login_required(role='SUPER ADMIN')
+def sms_dispatch():
+    if 'user_id' in session:
+        user_id = session['user_id']  # Get the user ID from the session
+        # Retrieve user information from the database
+        user = get_user_by_id(user_id)
+        if user:
+            username = user['username']
+            role = user['role']
+            image = user['image']
+
+            if request.method == 'POST':
+                item = request.form['item'].upper()
+                quantity = request.form['quantity']
+                dispatch = request.form['dispatch']
+                date_received = request.form['date_recieved']
+                officer = request.form.get('officer')
+                person = request.form.get('person', None)
+                department = request.form.get('department', None)
+                desc = request.form.get('desc', None)
+                number = request.form.get('number')
+                staff = request.form['staff']
+
+                conn, cursor = get_sms_db_connection()
+
+                cursor.execute('''
+                    INSERT INTO stores_dispatch (item, type, quantity, date_recieved, staff, department, officer_receiver, name_receiver, description, phone_number)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                ''', (item, dispatch, quantity, date_received, staff, department, officer, person, desc, number))
+
+                conn.commit()
+                conn.close()
+
+                flash("Item Successfully Dispatched")
+
+                return redirect('sms')
+
+            # Render the template with username and role
+            return render_template('super_admin/sms/dispatched.html', username=username, role=role, image=image)
 
     # If the user is not logged in or an error occurs, redirect to the index page
     return redirect(url_for('index'))
@@ -1402,7 +1559,7 @@ def department_search():
 
         # Fetch data from the "stores" table that matches the search query
         conn, cursor = get_department_db_connection()
-        cursor.execute("SELECT * FROM department WHERE department_name LIKE ? OR officer LIKE ?",
+        cursor.execute("SELECT * FROM department WHERE department_name LIKE ? OR hod LIKE ?",
                        ('%' + search_query + '%', '%' + search_query + '%'))
 
         search_results = cursor.fetchall()
@@ -1508,7 +1665,7 @@ def form1():
 
         if request.method == 'POST':
             department = request.form['department'].upper()
-            officer = request.form['officer'].upper()
+            hod = request.form['hod'].upper()
 
             conn, cursor = get_department_db_connection()
 
@@ -1522,7 +1679,7 @@ def form1():
             else:
                 # Insert the department into the 'department' table
                 cursor.execute(
-                    'INSERT INTO department (department_name, officer) VALUES (?, ?)', (department, officer))
+                    'INSERT INTO department (department_name, hod) VALUES (?, ?)', (department, hod))
 
                 # Commit the department insertion
                 conn.commit()
@@ -1659,7 +1816,7 @@ def update_department(department_name):
 
             if request.method == 'POST':
                 department = request.form['department'].upper()
-                officer = request.form['officer'].upper()
+                hod = request.form['hod'].upper()
                 unit = request.form['unit']
 
                 # Check if the department already exists
@@ -1672,7 +1829,7 @@ def update_department(department_name):
                 else:
                     # Update the department in the 'department' table
                     cursor.execute(
-                        'UPDATE department SET department_name=?, officer=? WHERE department_name=?', (department, officer, department_name))
+                        'UPDATE department SET department_name=?, hod=? WHERE department_name=?', (department, hod, department_name))
 
                     # Update the unit
                     cursor.execute(
@@ -2031,7 +2188,7 @@ def more_artisan(id):
     return redirect(url_for('index'))
 
 
-@app.route('/super_admin/artisans/add', methods=['GET', 'POST'])
+@app.route('/add_artisan', methods=['GET', 'POST'])
 @login_required(role='SUPER ADMIN')
 def add_artisan():
     if 'user_id' in session:
@@ -2202,25 +2359,247 @@ def update_artisan(id):
     return redirect(url_for('index'))
 
 
-# Report
-@app.route('/report')
+# Client Srvice Unit
+@app.route('/cs')
 @login_required(role='SUPER ADMIN')
-def report():
+def cs():
     if 'user_id' in session:
         user_id = session['user_id']  # Get the user ID from the session
         # Retrieve user information from the database
         user = get_user_by_id(user_id)
 
-        conn, cursor = get_artisan_db_connection()
-        cursor.execute("SELECT * FROM artisan")
-        artisan_list = cursor.fetchall()
+        conn, cursor = get_cs_db_connection()
+        cursor.execute("SELECT * FROM cs")
+        cs_list = cursor.fetchall()
         conn.close()
 
         if user:
             username = user['username']
             role = user['role']
             image = user['image']
-            return render_template('/super_admin/report/report.html', username=username, role=role, artisan=artisan_list, image=image)  # noqa
+            return render_template('/super_admin/cs/cs.html', username=username, role=role, cs=cs_list, image=image)  # noqa
+    return redirect(url_for('index'))
+
+
+@app.route('/cs_search', methods=['GET'])
+@login_required(role='SUPER ADMIN')
+def cs_search():
+
+    if 'user_id' in session:
+        user_id = session['user_id']  # Get the user ID from the session
+        # Retrieve user information from the database
+        user = get_user_by_id(user_id)
+
+        search_query = request.args.get('search')
+        session['search_query'] = search_query
+
+        if not search_query:
+            return redirect(url_for('cs'))
+
+        # Create the "stores" table if it doesn't exist
+
+        # Fetch data from the "stores" table that matches the search query
+        conn, cursor = get_cs_db_connection()
+        cursor.execute("SELECT * FROM cs WHERE name LIKE ? OR purpose LIKE ? OR unique_code LIKE ? OR phone_number LIKE ?",
+                       ('%' + search_query + '%', '%' + search_query + '%', '%' + search_query + '%', '%' + search_query + '%'))
+
+        search_results = cursor.fetchall()
+        conn.close()
+
+        if user:
+            username = user['username']
+            role = user['role']
+            image = user['image']
+            return render_template('/super_admin/cs/cs.html', username=username, role=role, cs=search_results, image=image)  # noqa
+    # If the user is not logged in or an error occurs, redirect to the index page# noqa
+    return redirect(url_for('index'))
+
+
+@app.route('/delete_cs/<int:id>')
+@login_required(role='SUPER ADMIN')
+def delete_cs(id):
+    if 'user_id' in session:
+        user_id = session['user_id']
+        # Retrieve user information from thartisan
+        user = get_user_by_id(user_id)
+
+        # Delete the record with the specified store_id
+        conn, cursor = get_cs_db_connection()
+        cursor.execute("DELETE FROM cs WHERE id=?",
+                       (id,))
+
+        conn.commit()
+        conn.close()
+
+        if user:
+            username = user['username']
+            role = user['role']
+            image = user['image']
+            return redirect(url_for('cs', username=username, role=role, image=image))
+    # If the user is not logged in or an error occurs, redirect to the index page
+    return redirect(url_for('index'))
+
+
+@app.route('/more_cs/<int:id>')
+@login_required(role='SUPER ADMIN')
+def more_cs(id):
+    if 'user_id' in session:
+        user_id = session['user_id']
+        # Retrieve user information from the database
+        user = get_user_by_id(user_id)
+
+        if user:
+            username = user['username']
+            role = user['role']
+            image = user['image']
+
+            # Fetch additional details for the selected store using the store_id
+            conn, cursor = get_cs_db_connection()
+            cursor.execute(
+                "SELECT * FROM cs WHERE id = ?", (id,))
+            cs_details = cursor.fetchone()
+            conn.close()
+
+            if cs_details:
+                # Pass the store details to the template
+                return render_template('/super_admin/cs/more.html', username=username, role=role, cs=cs_details, image=image)
+            else:
+                # Flash an error message when store details are not found
+                flash("Details not found", 'error')
+                return redirect(url_for('cs'))
+
+    # If the user is not logged in or an error occurs, redirect to the index page
+    return redirect(url_for('index'))
+
+
+@app.route('/add_cs', methods=['GET', 'POST'])
+@login_required(role='SUPER ADMIN')
+def add_cs():
+    if 'user_id' in session:
+        user_id = session['user_id']
+        user = get_user_by_id(user_id)
+
+        if user:
+            username = user['username']
+            role = user['role']
+            image = user['image']
+
+            if request.method == 'POST':
+
+                first_name = request.form['first_name']
+                last_name = request.form['last_name']
+                gender = request.form['gender']
+                phone = request.form['number']
+                address = request.form['address']
+                age_bracket = request.form['age_bracket']
+                disability_status = request.form['disability_status']
+                complainant = request.form.get('complainant', None)
+                complaint_textarea = request.form.get(
+                    'complaint_textarea', None)
+                enquiries_textarea = request.form.get(
+                    'enquiries_textarea', None)
+                tag_number = request.form.get('tag_number', None)
+                office = request.form.get('office', None)
+                receipient_name = request.form.get('receipient_name', None)
+                purpose_visit = request.form.get('purpose_visit', None)
+                purpose = request.form['purpose']
+
+                phone_suffix = phone[-4:] if len(phone) >= 4 else phone
+                current_datetime = datetime.now().strftime("%Y-%m-%d / %H%M:%S")
+                current_time = datetime.now().strftime("%Y%m%d")
+
+                unique_code = f"{last_name}{phone_suffix}{current_time}"
+
+                conn, cursor = get_cs_db_connection()
+
+                if purpose == 'Complaint' and complaint_textarea is not None:
+                    cursor.execute(
+                        "INSERT INTO cs (name, gender, phone_number, address, age_bracket, disability_status, complaint_to, complaint_content, purpose, unique_code, date_time) VALUES (?,?,?,?,?,?,?,?,?,?,?)",
+                        (f"{first_name} {last_name}", gender, phone, address, age_bracket, disability_status, complainant,
+                         complaint_textarea, purpose, unique_code, current_datetime)
+                    )
+                    flash("Complaint Successfully Sent")
+
+                elif purpose == 'Enquiries' and enquiries_textarea is not None:
+                    cursor.execute(
+                        "INSERT INTO cs (name, gender, phone_number, address, age_bracket, disability_status, enquiries_content, purpose, unique_code, date_time) VALUES (?,?,?,?,?,?,?,?,?,?)",
+                        (f"{first_name} {last_name}", gender, phone, address, age_bracket,
+                         disability_status, enquiries_textarea, purpose, unique_code, current_datetime)
+                    )
+                    flash("Enquiries Successfully Sent")
+                elif purpose == 'Visit':
+                    # Ensure other necessary fields are provided before executing the query
+                    cursor.execute(
+                        "INSERT INTO cs (name, gender, phone_number, address, age_bracket, disability_status, tag_number, office, receipient_name, purpose_visit, purpose, unique_code, date_time) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)",
+                        (f"{first_name} {last_name}", gender, phone, address, age_bracket, disability_status,
+                         tag_number, office, receipient_name, purpose_visit, purpose, unique_code, current_datetime)
+                    )
+                    flash("Successfully Added")
+                else:
+                    flash("Invalid form data for the selected purpose")
+
+                conn.commit()
+                conn.close()
+
+                return redirect(url_for('cs'))
+
+            return render_template('/super_admin/cs/add.html', username=username, role=role, image=image)
+
+    return redirect(url_for('index'))
+
+
+@app.route('/response_cs/<int:id>', methods=['GET', 'POST'])
+@login_required(role='SUPER ADMIN')
+def response_cs(id):
+    if 'user_id' in session:
+        user_id = session['user_id']
+        # Retrieve user information from the database
+        user = get_user_by_id(user_id)
+
+        if user:
+            username = user['username']
+            role = user['role']
+            image = user['image']
+
+            # Fetch additional details for the selected store using the store_id
+            conn, cursor = get_cs_db_connection()
+            cursor.execute(
+                "SELECT * FROM cs WHERE id = ?", (id,))
+            cs_details = cursor.fetchone()
+            conn.close()
+
+            if request.method == 'POST':
+                response_textarea = request.form.get('response_textarea')
+                purpose = request.form.get('purpose')
+
+                # Check if 'purpose' is present in the form data
+                if purpose is None:
+                    flash("Purpose is required", 'error')
+                    return redirect(url_for('response_cs', id=id))
+
+                conn, cursor = get_cs_db_connection()
+                if purpose == "Complaint":
+                    cursor.execute(
+                        "UPDATE cs SET complaint_response=? WHERE id=?", (response_textarea, id))
+                elif purpose == "Enquiries":
+                    cursor.execute(
+                        "UPDATE cs SET enquiries_response=? WHERE id=?", (response_textarea, id))
+                conn.commit()
+                conn.close()
+
+                redirect(url_for('cs'))
+
+                flash("Response Sent")
+
+            if cs_details:
+                # Pass the store details to the template
+                return render_template('/super_admin/cs/response.html', username=username, role=role, cs=cs_details, image=image)
+            else:
+                # Flash an error message when store details are not found
+                flash("Details not found", 'error')
+                return redirect(url_for('cs'))
+
+    # If the user is not logged in or an error occurs, redirect to the index page
     return redirect(url_for('index'))
 
 
@@ -2307,6 +2686,8 @@ def back():
         return redirect(url_for('asset'))
     elif 'artisan' in referrer:
         return redirect(url_for('artisan'))
+    elif 'cs' in referrer:
+        return redirect(url_for('cs'))
     # Add more conditions for other routes as needed
     else:
         # Default to redirecting to the index page if none of the conditions match
@@ -3262,7 +3643,7 @@ def staff_asset_search():
 
         # Fetch data from the "stores" table that matches the search query
         conn, cursor = get_asset_db_connection()
-        cursor.execute("SELECT * FROM asset WHERE department LIKE ? OR officer LIKE ? OR unit LIKE ? OR device_name LIKE ? OR division LIKE ?",
+        cursor.execute("SELECT * FROM asset WHERE department LIKE ? OR user LIKE ? OR unit LIKE ? OR device_name LIKE ? OR division LIKE ?",
                        ('%' + search_query + '%', '%' + search_query + '%', '%' + search_query + '%', '%' + search_query + '%', '%' + search_query + '%'))
 
         search_results = cursor.fetchall()
@@ -3322,7 +3703,7 @@ def staff_asset_add():
                 unit = request.form['unit']
                 device = request.form['device']
                 date_purchased = request.form['date_purchased']
-                officer = request.form['officer']
+                using = request.form['using']
                 serial_number = request.form['serial_number']
                 embosenuit = request.form['embosenuit']
                 status = request.form['status']
@@ -3338,27 +3719,27 @@ def staff_asset_add():
                 if toner is not None and capacity is not None:
                     cursor.execute('''
                         INSERT INTO asset (department, unit, device_name, brand, serial_number, embosenuit_number,
-                        device_status, toner, device_capacity, division, date_purchased, officer, staff)
+                        device_status, toner, device_capacity, division, date_purchased, user, staff)
                         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-                    ''', (department, unit, device, brand, serial_number, embosenuit, status, toner, capacity, division, date_purchased, officer, staff))
+                    ''', (department, unit, device, brand, serial_number, embosenuit, status, toner, capacity, division, date_purchased, using, staff))
                 elif toner is not None:
                     cursor.execute('''
                         INSERT INTO asset (department, unit, device_name, brand, serial_number, embosenuit_number,
-                        device_status, toner, division, date_purchased, officer, staff)
+                        device_status, toner, division, date_purchased, user, staff)
                         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-                    ''', (department, unit, device, brand, serial_number, embosenuit, status, toner, division, date_purchased, officer, staff))
+                    ''', (department, unit, device, brand, serial_number, embosenuit, status, toner, division, date_purchased, using, staff))
                 elif capacity is not None:
                     cursor.execute('''
                         INSERT INTO asset (department, unit, device_name, brand, serial_number, embosenuit_number,
-                        device_status, device_capacity, division, date_purchased, officer, staff)
+                        device_status, device_capacity, division, date_purchased, user, staff)
                         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-                    ''', (department, unit, device, brand, serial_number, embosenuit, status, capacity, division, date_purchased, officer, staff))
+                    ''', (department, unit, device, brand, serial_number, embosenuit, status, capacity, division, date_purchased, using, staff))
                 else:
                     cursor.execute('''
                         INSERT INTO asset (department, unit, device_name, brand, serial_number, embosenuit_number,
-                        device_status, division, date_purchased, officer, staff)
+                        device_status, division, date_purchased, user, staff)
                         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-                    ''', (department, unit, device, brand, serial_number, embosenuit, status, division, date_purchased, officer, staff))
+                    ''', (department, unit, device, brand, serial_number, embosenuit, status, division, date_purchased, using, staff))
                 conn.commit()
                 conn.close()
 
@@ -3383,15 +3764,32 @@ def staff_sms():
         user = get_user_by_id(user_id)
 
         conn, cursor = get_sms_db_connection()
-        cursor.execute("SELECT * FROM sms ORDER BY id DESC LIMIT 10")
-        sms_list = cursor.fetchall()
+        cursor.execute("SELECT COUNT(id) FROM stores_received")
+        item_count = cursor.fetchone()[0]
+        conn.close()
+
+        conn, cursor = get_sms_db_connection()
+        cursor.execute("SELECT COUNT(id) FROM stores_dispatch")
+        dispatch_count = cursor.fetchone()[0]
+        conn.close()
+
+        conn, cursor = get_sms_db_connection()
+        cursor.execute(
+            "SELECT * FROM stores_received ORDER BY id DESC LIMIT 10")
+        sms_list_receiver = cursor.fetchall()
+        conn.close()
+
+        conn, cursor = get_sms_db_connection()
+        cursor.execute(
+            "SELECT * FROM stores_dispatch ORDER BY id DESC LIMIT 10")
+        sms_list_dispatch = cursor.fetchall()
         conn.close()
 
         if user:
             username = user['username']
             role = user['role']
             image = user['image']
-            return render_template('/data_entry/sms/sms.html', username=username, role=role, image=image, sms=sms_list)  # noqa
+            return render_template('/data_entry/sms/sms.html', username=username, role=role, image=image, sms_list_receiver=sms_list_receiver, item_count=item_count, dispatch_count=dispatch_count, sms_list_dispatch=sms_list_dispatch)  # noqa
     return redirect(url_for('index'))
 
 
@@ -3412,17 +3810,21 @@ def staff_sms_search():
 
         # Fetch data from the "stores" table that matches the search query
         conn, cursor = get_sms_db_connection()
-        cursor.execute("SELECT * FROM sms WHERE item LIKE ? OR serial_number LIKE ?",
+        cursor.execute("SELECT * FROM stores_received WHERE item LIKE ? OR serial_number LIKE ?",
+                       ('%' + search_query + '%', '%' + search_query + '%'))
+        search_results_receiver = cursor.fetchall()
+
+        cursor.execute("SELECT * FROM stores_dispatch WHERE item LIKE ? OR name_receiver LIKE ?",
                        ('%' + search_query + '%', '%' + search_query + '%'))
 
-        search_results = cursor.fetchall()
+        search_results_dispatch = cursor.fetchall()
         conn.close()
 
         if user:
             username = user['username']
             role = user['role']
             image = user['image']
-            return render_template('/data_entry/sms/sms.html', username=username, role=role, sms=search_results, image=image)  # noqa
+            return render_template('/data_entry/sms/sms.html', username=username, role=role, sms_receiver=search_results_receiver, sms_dispatch=search_results_dispatch,  image=image)  # noqa
     # If the user is not logged in or an error occurs, redirect to the index page# noqa
     return redirect(url_for('index'))
 
@@ -3442,17 +3844,20 @@ def staff_sms_add():
             if request.method == 'POST':
                 item = request.form['item'].upper()
                 serial_number = request.form['serial_number'].upper()
-                quantity = request.form['quantity']
+                quantity_requested = request.form['requested_quantity']
+                quantity_received = request.form['received_quantity']
                 date_recieved = request.form['date_recieved']
-
+                differnce = request.form['difference']
+                supplier = request.form['supplier']
+                department = request.form['department']
                 staff = request.form['staff']
 
                 conn, cursor = get_sms_db_connection()
 
                 cursor.execute('''
-                    INSERT INTO sms (item, serial_number, quantity, date_recieved, staff)
-                    VALUES (?, ?, ?, ?, ?)
-                ''', (item, serial_number, quantity, date_recieved, staff))
+                    INSERT INTO stores_received (item, serial_number, quantity_requested, quantity_received, date_recieved, staff, difference, supplier_name, requested_dept)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                ''', (item, serial_number, quantity_requested, quantity_received, date_recieved, staff, differnce, supplier, department))
 
                 conn.commit()
                 conn.close()
@@ -3463,6 +3868,51 @@ def staff_sms_add():
 
             # Render the template with username and role
             return render_template('/data_entry/sms/add.html', username=username, role=role, image=image)
+
+    # If the user is not logged in or an error occurs, redirect to the index page
+    return redirect(url_for('index'))
+
+
+@app.route('/staff_sms_dispatch', methods=['GET', 'POST'])
+@login_required(role='DATA ENTRY')
+def staff_sms_dispatch():
+    if 'user_id' in session:
+        user_id = session['user_id']  # Get the user ID from the session
+        # Retrieve user information from the database
+        user = get_user_by_id(user_id)
+        if user:
+            username = user['username']
+            role = user['role']
+            image = user['image']
+
+            if request.method == 'POST':
+                item = request.form['item'].upper()
+                quantity = request.form['quantity']
+                dispatch = request.form['dispatch']
+                date_received = request.form['date_recieved']
+                officer = request.form.get('officer')
+                person = request.form.get('person', None)
+                department = request.form.get('department', None)
+                desc = request.form.get('desc', None)
+                number = request.form.get('number')
+                staff = request.form['staff']
+
+                conn, cursor = get_sms_db_connection()
+
+                cursor.execute('''
+                    INSERT INTO stores_dispatch (item, type, quantity, date_recieved, staff, department, officer_receiver, name_receiver, description, phone_number)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                ''', (item, dispatch, quantity, date_received, staff, department, officer, person, desc, number))
+
+                conn.commit()
+                conn.close()
+
+                flash("Item Successfully Dispatched")
+
+                return redirect('staff_sms')
+
+            # Render the template with username and role
+            return render_template('/data_entry/sms/add-dispatch.html', username=username, role=role, image=image)
 
     # If the user is not logged in or an error occurs, redirect to the index page
     return redirect(url_for('index'))

@@ -8,36 +8,43 @@ endblock %} {% block content %}
         <h2>Store Id:{{ sms.id }}</h2>
       </div>
       <div class="content-text">
+        <h3>Dispatch:</h3>
+        <p>{{ sms.type }}</p>
+      </div>
+      <div class="content-text">
         <h3>Item Purchased:</h3>
         <p>{{ sms.item }}</p>
       </div>
       <div class="content-text">
-        <h3>Item Serial Number:</h3>
-        <p>{{ sms.serial_number }}</p>
+        <h3>Quantity:</h3>
+        <p>{{ sms.quantity }}</p>
+      </div>
+      {% if sms.officer_receiver %}
+      <div class="content-text">
+        <h3>Name Of Officer Receiving The Item:</h3>
+        <p>{{ sms.officer_receiver }}</p>
       </div>
       <div class="content-text">
-        <h3>Quantity Requested:</h3>
-        <p>{{ sms.quantity_requested }}</p>
+        <h3>Department/Unit:</h3>
+        <p>{{ sms.department }}</p>
+      </div>
+      {% endif %} {% if sms.name_receiver %}
+      <div class="content-text">
+        <h3>Name Of Person Receiving The Item:</h3>
+        <p>{{ sms.name_receiver }}</p>
       </div>
       <div class="content-text">
-        <h3>Quantity Received:</h3>
-        <p>{{ sms.quantity_received }}</p>
+        <h3>Telephone Number:</h3>
+        <p>{{ sms.phone_number }}</p>
       </div>
-      <div class="content-text">
-        <h3>Quantity Difference:</h3>
-        <p>{{ sms.difference }}</p>
-      </div>
-      <div class="content-text">
-        <h3>Company Name/Supplier:</h3>
-        <p>{{ sms.supplier_name }}</p>
-      </div>
-      <div class="content-text">
-        <h3>Requesting Department:</h3>
-        <p>{{ sms.requested_dept }}</p>
-      </div>
+      {% endif %}
       <div class="content-text">
         <h3>Date Recieved:</h3>
         <p>{{ sms.date_recieved }}</p>
+      </div>
+      <div class="content-text">
+        <h3>Description:</h3>
+        <p>{{ sms.description }}</p>
       </div>
       <div class="content-text">
         <h3>Staff:</h3>
