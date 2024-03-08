@@ -1,0 +1,86 @@
+{% extends '/super_admin/base.html' %} {% block heading %} Records {% endblock
+%} {% block content %}
+
+<!----------------------Search------------------------>
+<div class="search-container">
+  <form class="search" action="{{url_for ('rmu_search')}}" method="GET">
+    <input type="search" name="search" id="search" placeholder="Search" />
+    <input type="submit" value="Search" />
+  </form>
+</div>
+
+<!---------------------Dropdown-------------------------->
+<div class="action-drop">
+  <div class="drop-btn">
+    <button id="dropdown">
+      Actions <ion-icon name="chevron-down-outline"></ion-icon>
+    </button>
+  </div>
+  <div class="dropdownMenu" id="dropdownMenu">
+    <a href="{{url_for ('add_rmu')}}">Record Letter</a>
+    <a href="{{url_for ('incomplete_rmu')}}">Incomplete Records</a>
+    <a href="{{url_for ('notification')}}">Notification</a>
+    <a href="{{url_for('export_excel_stores')}}">Export</a>
+  </div>
+</div>
+
+<!-- ================ Order Details List ================= -->
+<div class="details">
+  <div class="recentOrders">
+    <div class="cardHeader">
+      <h2>Records Management Unit</h2>
+    </div>
+
+    <table>
+      <thead>
+        <tr>
+          <td>ID</td>
+          <td>Subject</td>
+          <td>Category</td>
+          <td>Date On Letter</td>
+          <td>To Whom Receievd</td>
+          <td>File Number</td>
+          <td>Action</td>
+        </tr>
+      </thead>
+
+      <tbody>
+        {% for rmus in rmu %}
+        <tr>
+          <td>{{rmus.id}}</td>
+          <td>{{rmus.subject}}</td>
+          <td>{{rmus.category}}</td>
+          <td>{{rmus.letter_date}}</td>
+          <td>{{rmus.received_by}}</td>
+          <td>{{rmus.file_number}}</td>
+          <td class="action">
+            <a href="{{ url_for('more_cs', id=rmus.id) }}" class="btn"
+              >Details</a
+            >
+            {% if rmus.category == 'Internal (Incoming)' %} {% if
+            rmus.file_number == "None" and rmus.receiving_officer != "None" %}
+            <a
+              href="{{ url_for('add_rmu_filenumber', id=rmus.id) }}"
+              class="complete"
+              >Complete</a
+            >
+            {% endif %} {% endif %}
+            <a href="{{ url_for('delete_rmu', id=rmus.id) }}" class="delete"
+              ><ion-icon name="close-outline"></ion-icon
+            ></a>
+          </td>
+          <td>
+            {% if rmus.file_number == 'None' and rmus.receiving_officer ==
+            "None" %}
+            <div class="status-red"></div>
+            {% elif rmus.file_number == 'None' %}
+            <div class="status-yellow"></div>
+            {% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

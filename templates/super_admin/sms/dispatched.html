@@ -10,16 +10,33 @@
       <h2>Dispatch Details</h2>
       <div>
         <div>
-            <div class="details-input">
-              <label>Dispatch <span class="hash">*</span></label>
-              <select name="dispatch" id="dispatch" required>
-                <option value="" selected></option>
-                <option value="Internal">Internal</option>
-                <option value="External">External</option>
-              </select>
-            </div>
+          <div class="details-input">
+            <label>Store Requisition/Voucher Number <span class="hash">*</span></label>
+            <input type="text" name="requisition" id="requisition" placeholder="Store Requisition/Voucher Number" required />
+          </div>
+          <div class="details-input">
+            <label>Dispatch <span class="hash">*</span></label>
+            <select name="dispatch" id="dispatch" required>
+              <option value="" selected></option>
+              <option value="Internal">Internal</option>
+              <option value="External">External</option>
+            </select>
+          </div>
         </div>
       </div>
+    </div>
+
+    <div style=`{{ display }}`>
+      <div class="details-input">
+        <label>Quantity Type <span class="hash">*</span></label>
+        <select name="quantity_type" id="type" required>
+          <option value="" selected></option>
+          <option value="Bulk">Bulk</option>
+          <option value="Single">Single</option>
+        </select>
+      </div>
+
+      <div class="dynamic" id="dynamic-form"></div>
     </div>
 
     <div id="dynamic"></div>
@@ -40,38 +57,33 @@
 </div>
 
 <script>
-  const dynamic = document.getElementById('dynamic')
-  const dispatch = document.getElementById('dispatch')
+  const dynamic = document.getElementById('dynamic');
+  const dispatch = document.getElementById('dispatch');
+  
+  let display = (dispatch.value === 'Internal') ? 'display: block;' : 'display: none;';
+
 
   dispatch.addEventListener('change', () => {
-    dispatchValue = dispatch.value
-    dynamic.innerHTML = ""
-    
-    if (dispatchValue === "Internal"){
+    const dispatchValue = dispatch.value;
+    dynamic.innerHTML = "";
+
+    display = (dispatchValue === "Internal") ? style="display: block;" : style="display: none;";
+
+    if (dispatchValue === "Internal") {
       dynamic.innerHTML = `
-      <div class="details-input">
-          <label for="item">Item <span class="hash">*</span></label>
-          <input type="text" name="item" id="item" placeholder="Item Purchased" required />
-      </div>
-
-      <div class="details-input">
-          <label>Quantity <span class="hash">*</span></label>
-          <input type="number" name="quantity" id="quantity" placeholder="Quantiy" required />
-      </div>
-
       <div class="details-input">
         <label>Name Of Officer Receiving The Item <span class="hash">*</span></label>
         <input type="text" name="officer" id="officer" placeholder="Name Of Officer" required />
       </div>
 
       <div class="details-input">
-          <label>Department/Unit <span class="hash">*</span></label>
-          <input type="text" name="department" id="department" placeholder="Department/Unit" required />
+        <label>Department/Unit <span class="hash">*</span></label>
+        <input type="text" name="department" id="department" placeholder="Department/Unit" required />
       </div>
 
       <div class="details-input">
-          <label>Date Recieved <span class="hash">*</span></label>
-          <input type="date" name="date_recieved" id="date_recieved" placeholder="Date Recieved" required />
+        <label>Date Received <span class="hash">*</span></label>
+        <input type="date" name="date_received" id="date_received" placeholder="Date Received" required />
       </div>
 
       <div class="details-input">
@@ -85,19 +97,21 @@
             placeholder="Type here"></textarea>
         </div>
       </div>
-      `
-    }
+      `;
 
-    else if(dispatchValue === "External"){
+      dynamic2.innerHTML = `
+      
+      `
+    } else if (dispatchValue === "External") {
       dynamic.innerHTML = `
       <div class="details-input">
-          <label for="item">Item <span class="hash">*</span></label>
-          <input type="text" name="item" id="item" placeholder="Item Purchased" required />
+        <label for="item">Item <span class="hash">*</span></label>
+        <input type="text" name="item" id="item" placeholder="Item Purchased" required />
       </div>
 
       <div class="details-input">
-          <label>Quantity <span class="hash">*</span></label>
-          <input type="number" name="quantity" id="quantity" placeholder="Quantiy" required />
+        <label>Quantity <span class="hash">*</span></label>
+        <input type="number" name="quantity" id="quantity" placeholder="Quantity" required />
       </div>
 
       <div class="details-input">
@@ -111,8 +125,8 @@
       </div>
 
       <div class="details-input">
-          <label>Date Recieved <span class="hash">*</span></label>
-          <input type="date" name="date_recieved" id="date_recieved" placeholder="Date Recieved" required />
+        <label>Date Received <span class="hash">*</span></label>
+        <input type="date" name="date_received" id="date_received" placeholder="Date Received" required />
       </div>
 
       <div class="details-input">
@@ -126,9 +140,66 @@
             placeholder="Type here"></textarea>
         </div>
       </div>
-      `
+      `;
     }
-  })
+  });
+
+  const type = document.getElementById('type');
+  const dynamicForm = document.getElementById('dynamic-form');
+
+  type.addEventListener('change', () => {
+    const typeValue = type.value;
+    dynamicForm.innerHTML = "";
+
+    if (typeValue === 'Bulk') {
+      dynamicForm.innerHTML = `
+        <div class="details-type">
+          <div class="type-generate" id="formContainer">
+            <div class="details-input-generate">
+              <label>Item <span class="hash">*</span></label>
+              <input type="text" name="item" id="item" class="item" placeholder="Item" required />
+            </div>
+            <div class="details-input-generate">
+              <label>Quantity <span class="hash">*</span></label>
+              <input type="number" name="quantity" id="quantity" class="item" placeholder="Quantity" required />
+            </div>
+          </div>
+        </div>
+        <button class="generate-form" id="generate-form" onclick="generateNewForm()">New</button>
+      `;
+    } else if (typeValue === "Single") {
+      dynamicForm.innerHTML = `
+        <div class="details-type">
+          <div class="type-generate" id="formContainer">
+            <div class="details-input-generate">
+              <label>Item <span class="hash">*</span></label>
+              <input type="text" name="item" id="item" class="item" placeholder="Item" required />
+            </div>
+            <div class="details-input-generate">
+              <label>Quantity <span class="hash">*</span></label>
+              <input type="number" name="quantity" id="quantity" class="item" placeholder="Quantity" required />
+            </div>
+          </div>
+        </div>
+        <button class="generate-form" id="generate-form" onclick="generateNewForm()">New</button>
+      `;
+    }
+  });
+
+  function generateNewForm() {
+    // Clone the existing form container
+    var formContainer = document.getElementById('formContainer');
+    var newForm = formContainer.cloneNode(true);
+
+    // Clear input values in the cloned form
+    var inputs = newForm.getElementsByTagName('input');
+    for (var i = 0; i < inputs.length; i++) {
+      inputs[i].value = '';
+    }
+
+    // Append the cloned form to the container
+    formContainer.parentNode.appendChild(newForm);
+  }
 </script>
 
 {% endblock %}

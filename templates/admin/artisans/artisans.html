@@ -1,0 +1,104 @@
+{% extends '/admin/base.html' %} {% block heading %} Artisans {% endblock %} {%
+block content %}
+
+<!----------------------Cards------------------------->
+<div class="cardBox">
+  <a class="card" href="#">
+    <div>
+      <div class="numbers">{{total_artisan_count}}</div>
+      <div class="cardName">Total Artian Registered</div>
+    </div>
+
+    <div class="iconBx">
+      <ion-icon name="clipboard-outline"></ion-icon>
+    </div>
+  </a>
+
+  <a class="card" href="#dispatch">
+    <div>
+      <div class="numbers">{{total_artisan_count_male}}</div>
+      <div class="cardName">Total Males</div>
+    </div>
+
+    <div class="iconBx">
+      <ion-icon name="man-outline"></ion-icon>
+    </div>
+  </a>
+
+  <a class="card" href="#dispatch">
+    <div>
+      <div class="numbers">{{total_artisan_count_female}}</div>
+      <div class="cardName">Total Females</div>
+    </div>
+
+    <div class="iconBx">
+      <ion-icon name="woman-outline"></ion-icon>
+    </div>
+  </a>
+</div>
+
+<!----------------------Search------------------------>
+<div class="search-container">
+  <form
+    class="search"
+    action="{{url_for ('admin_artisan_search')}}"
+    method="GET">
+    <input type="search" name="search" id="search" placeholder="Search" />
+    <input type="submit" value="Search" />
+  </form>
+</div>
+
+<!---------------------Dropdown-------------------------->
+<div class="action-drop">
+  <div class="drop-btn">
+    <button id="dropdown">
+      Actions <ion-icon name="chevron-down-outline"></ion-icon>
+    </button>
+  </div>
+  <div class="dropdownMenu" id="dropdownMenu">
+    <a href="{{url_for ('admin_add_artisan')}}">Add Artisan</a>
+    <a href="{{url_for('export_excel_stores')}}">Export</a>
+  </div>
+</div>
+
+<!-- ================ Order Details List ================= -->
+<div class="details">
+  <div class="recentOrders">
+    <div class="cardHeader">
+      <h2>Artisans</h2>
+    </div>
+
+    <table>
+      <thead>
+        <tr>
+          <td>ID</td>
+          <td>Artisan Name</td>
+          <td>Profession</td>
+          <td>Tel Number</td>
+          <td>Date Registered</td>
+          <td>Action</td>
+        </tr>
+      </thead>
+
+      <tbody>
+        {% for artisans in artisan %}
+        <tr>
+          <td>{{artisans.id}}</td>
+          <td>{{artisans.name}}</td>
+          <td>{{artisans.profession}}</td>
+          <td>{{artisans.phone_number}}</td>
+          <td>{{artisans.date_registered}}</td>
+          <td class="action">
+            <a
+              href="{{ url_for('admin_more_artisan', id=artisans.id) }}"
+              class="btn"
+              >Details</a
+            >
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

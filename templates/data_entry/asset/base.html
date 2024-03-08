@@ -139,6 +139,14 @@
         user_content.classList.toggle("active");
         user_profile.classList.toggle("active");
       };
+
+      const dropdown = document.getElementById("dropdown");
+      const dropdownMenu = document.getElementById("dropdownMenu");
+
+      dropdown.onclick = function () {
+        dropdownMenu.classList.toggle("drop");
+        console.log("Clicked");
+      };
     </script>
 
     <!-- ====== ionicons ======= -->

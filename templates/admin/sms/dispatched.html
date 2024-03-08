@@ -1,0 +1,134 @@
+{% extends '/admin/base.html' %}
+{% block heading %} Stores Management {% endblock %}
+{% block content %}
+<div class="content-container">
+  <div class="head">
+    <h1>Item Dispatch Registration</h1>
+  </div>
+  <form action="{{ url_for('admin_sms_dispatch') }}" method="post">
+    <div class="store-detail">
+      <h2>Dispatch Details</h2>
+      <div>
+        <div>
+            <div class="details-input">
+              <label>Dispatch <span class="hash">*</span></label>
+              <select name="dispatch" id="dispatch" required>
+                <option value="" selected></option>
+                <option value="Internal">Internal</option>
+                <option value="External">External</option>
+              </select>
+            </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="dynamic"></div>
+
+    <div class="store-detail">
+      <h2>Staff</h2>
+      <div class="details-input">
+        <label for="staff">Staff Name:</label>
+        <input type="text" name="staff" id="staff" placeholder="Staff Name" value="{{ username }}" readonly required />
+        <input type="hidden" name="staff" value="{{ username }}" />
+      </div>
+    </div>
+    <div class="input-submit">
+      <input type="submit" value="Add">
+    </div>
+  </form>
+</div>
+</div>
+
+<script>
+  const dynamic = document.getElementById('dynamic')
+  const dispatch = document.getElementById('dispatch')
+
+  dispatch.addEventListener('change', () => {
+    dispatchValue = dispatch.value
+    dynamic.innerHTML = ""
+    
+    if (dispatchValue === "Internal"){
+      dynamic.innerHTML = `
+      <div class="details-input">
+          <label for="item">Item <span class="hash">*</span></label>
+          <input type="text" name="item" id="item" placeholder="Item Purchased" required />
+      </div>
+
+      <div class="details-input">
+          <label>Quantity <span class="hash">*</span></label>
+          <input type="number" name="quantity" id="quantity" placeholder="Quantiy" required />
+      </div>
+
+      <div class="details-input">
+        <label>Name Of Officer Receiving The Item <span class="hash">*</span></label>
+        <input type="text" name="officer" id="officer" placeholder="Name Of Officer" required />
+      </div>
+
+      <div class="details-input">
+          <label>Department/Unit <span class="hash">*</span></label>
+          <input type="text" name="department" id="department" placeholder="Department/Unit" required />
+      </div>
+
+      <div class="details-input">
+          <label>Date Recieved <span class="hash">*</span></label>
+          <input type="date" name="date_recieved" id="date_recieved" placeholder="Date Recieved" required />
+      </div>
+
+      <div class="details-input">
+        <div class="textfield">
+          <label>Description <span class="hash">*</span></label>
+          <textarea
+            name="desc"
+            id="desc"
+            cols="30"
+            rows="20"
+            placeholder="Type here"></textarea>
+        </div>
+      </div>
+      `
+    }
+
+    else if(dispatchValue === "External"){
+      dynamic.innerHTML = `
+      <div class="details-input">
+          <label for="item">Item <span class="hash">*</span></label>
+          <input type="text" name="item" id="item" placeholder="Item Purchased" required />
+      </div>
+
+      <div class="details-input">
+          <label>Quantity <span class="hash">*</span></label>
+          <input type="number" name="quantity" id="quantity" placeholder="Quantiy" required />
+      </div>
+
+      <div class="details-input">
+        <label>Name Of Person Receiving The Item <span class="hash">*</span></label>
+        <input type="text" name="person" id="person" placeholder="Name Of Person" required />
+      </div>
+
+      <div class="details-input">
+        <label>Telephone Number <span class="hash">*</span></label>
+        <input type="number" name="number" id="number" placeholder="Telephone Number" required />
+      </div>
+
+      <div class="details-input">
+          <label>Date Recieved <span class="hash">*</span></label>
+          <input type="date" name="date_recieved" id="date_recieved" placeholder="Date Recieved" required />
+      </div>
+
+      <div class="details-input">
+        <div class="textfield">
+          <label>Description <span class="hash">*</span></label>
+          <textarea
+            name="desc"
+            id="desc"
+            cols="30"
+            rows="20"
+            placeholder="Type here"></textarea>
+        </div>
+      </div>
+      `
+    }
+  })
+</script>
+
+{% endblock %}

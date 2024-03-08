@@ -1,6 +1,53 @@
 {% extends '/super_admin/base.html' %} {% block heading %} Client Service Unit
 {% endblock %} {% block content %}
 
+<!----------------------Cards------------------------->
+<div class="cardBox4">
+  <a class="card" href="#">
+    <div>
+      <div class="numbers">{{total_cs}}</div>
+      <div class="cardName">Total Records</div>
+    </div>
+
+    <div class="iconBx">
+      <ion-icon name="clipboard-outline"></ion-icon>
+    </div>
+  </a>
+
+  <a class="card" href="#">
+    <div>
+      <div class="numbers">{{total_complaint}}</div>
+      <div class="cardName">Total Complaint</div>
+    </div>
+
+    <div class="iconBx">
+      <ion-icon name="man-outline"></ion-icon>
+    </div>
+  </a>
+
+  <a class="card" href="#">
+    <div>
+      <div class="numbers">{{total_enquiries}}</div>
+      <div class="cardName">Total Enquiries</div>
+    </div>
+
+    <div class="iconBx">
+      <ion-icon name="woman-outline"></ion-icon>
+    </div>
+  </a>
+
+  <a class="card" href="#">
+    <div>
+      <div class="numbers">{{total_visit}}</div>
+      <div class="cardName">Total Visit</div>
+    </div>
+
+    <div class="iconBx">
+      <ion-icon name="woman-outline"></ion-icon>
+    </div>
+  </a>
+</div>
+
 <!----------------------Search------------------------>
 <div class="search-container">
   <form class="search" action="{{url_for ('cs_search')}}" method="GET">
@@ -57,6 +104,11 @@
             >
             <a href="{{ url_for('delete_cs', id=csu.id) }}" class="delete"
               ><ion-icon name="close-outline"></ion-icon
+            ></a>
+            <a
+              href="{{ url_for('export_response_pdf', id=csu.id) }}"
+              class="export"
+              ><ion-icon name="print-outline"></ion-icon
             ></a>
           </td>
         </tr>

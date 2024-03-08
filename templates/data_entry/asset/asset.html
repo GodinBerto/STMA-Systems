@@ -3,10 +3,22 @@ endblock %} {% block content %}
 
 <!----------------------Search------------------------>
 <div class="search-container">
-  <form class="search" action="{{url_for ('staff_asset_search')}}" method="GET">
+  <form class="search" action="{{url_for ('asset_search')}}" method="GET">
     <input type="search" name="search" id="search" placeholder="Search" />
     <input type="submit" value="Search" />
   </form>
+</div>
+
+<!---------------------Dropdown-------------------------->
+<div class="action-drop">
+  <div class="drop-btn">
+    <button id="dropdown">
+      Actions <ion-icon name="chevron-down-outline"></ion-icon>
+    </button>
+  </div>
+  <div class="dropdownMenu" id="dropdownMenu">
+    <a href="{{url_for ('staff_add_asset')}}">Add Asset</a>
+  </div>
 </div>
 
 <!-- ================ Order Details List ================= -->
@@ -14,7 +26,6 @@ endblock %} {% block content %}
   <div class="recentOrders">
     <div class="cardHeader">
       <h2>Assets</h2>
-      <a href="{{url_for ('staff_add_asset')}}" class="btn">Add Asset</a>
     </div>
 
     <table>
@@ -26,7 +37,7 @@ endblock %} {% block content %}
           <td>Device</td>
           <td>Divsion</td>
           <td>Date Purchased</td>
-          <td>Officer Incharge</td>
+          <td>User</td>
         </tr>
       </thead>
 
@@ -39,11 +50,12 @@ endblock %} {% block content %}
           <td>{{assets.device_name}}</td>
           <td>{{assets.division}}</td>
           <td>{{assets.date_purchased}}</td>
-          <td>{{assets.officer}}</td>
+          <td>{{assets.user}}</td>
         </tr>
         {% endfor %}
       </tbody>
     </table>
   </div>
 </div>
+
 {% endblock %}

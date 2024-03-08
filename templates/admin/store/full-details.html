@@ -1,5 +1,5 @@
-{% extends '/admin/base.html' %} {% block heading %} Stores {% endblock %} {%
-block content %}
+{% extends '/admin/base.html' %} {% block heading %} Store Rent {% endblock %}
+{% block content %}
 <div class="content-container">
   <h1>Full Details</h1>
   <div class="all-container">
@@ -110,11 +110,6 @@ block content %}
     </div>
     <div class="actions">
       <a class="green" href="{{ url_for('admin_back') }}">Back</a>
-      <a
-        class="blue"
-        href="{{url_for('admin_update_stores', store_number=store.store_number)}}"
-        >Edit</a
-      >
     </div>
   </div>
 </div>

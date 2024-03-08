@@ -127,6 +127,7 @@
             name="postal_address"
             id="postal_address"
             placeholder="Postal Address"
+            oninput="formatWorkshopGPS(this)"
             required />
         </div>
       </div>
@@ -140,6 +141,7 @@
             name="gps_address"
             id="gps_address"
             placeholder="GPS Address"
+            oninput="formatWorkshopGPS(this)"
             required />
         </div>
       </div>
@@ -179,6 +181,7 @@
             name="workshop"
             id="workshop"
             placeholder="Workshop Location"
+            oninput="formatWorkshopGPS(this)"
             required />
         </div>
       </div>
@@ -205,6 +208,47 @@
             name="registration"
             id="registration"
             placeholder="Date Of Registration"
+            required />
+        </div>
+      </div>
+    </div>
+
+    <div class="store-detail">
+      <h2>Association Details</h2>
+      <div>
+        <div class="details-input">
+          <label>Name Of Association<span class="hash">*</span></label>
+          <input
+            type="text"
+            name="association_name"
+            id="association_name"
+            placeholder="Name Of Association"
+            required />
+        </div>
+      </div>
+      <div>
+        <div class="details-input">
+          <label
+            >Name Of The President/Chairperson<span class="hash">*</span></label
+          >
+          <input
+            type="text"
+            name="association_president"
+            id="association_president"
+            placeholder="Name Of President/Chairperson"
+            required />
+        </div>
+      </div>
+      <div>
+        <div class="details-input">
+          <label
+            >Tell No. Chairperson/President<span class="hash">*</span></label
+          >
+          <input
+            type="number"
+            name="association_number"
+            id="association_number"
+            placeholder="Tell No. Chairperson/Presidentn"
             required />
         </div>
       </div>
@@ -271,7 +315,7 @@
     </div>
 
     <div class="input-submit">
-      <input type="submit" value="Add" />
+      <input type="submit" value="Submit" />
     </div>
   </form>
 </div>

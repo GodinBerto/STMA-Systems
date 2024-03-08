@@ -25,8 +25,8 @@ block content %}
         <p>{{asset.date_purchased}}</p>
       </div>
       <div class="content-text">
-        <h3>Officer Incharge:</h3>
-        <p>{{asset.officer}}</p>
+        <h3>User:</h3>
+        <p>{{asset.user}}</p>
       </div>
       <div class="titles">
         <h2>Device Details</h2>
@@ -68,9 +68,6 @@ block content %}
   </div>
   <div class="actions">
     <a class="green" href="{{url_for('admin_back')}}">Back</a>
-    <a class="blue" href="{{ url_for('admin_update_asset', id=asset.id) }}"
-      >Edit</a
-    >
   </div>
 </div>
 {% endblock %}

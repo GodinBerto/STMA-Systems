@@ -1,0 +1,91 @@
+{% extends '/admin/base.html' %} {% block heading %} Client Service Unit {%
+endblock %} {% block content %}
+<div class="content-container">
+  <h1>Full Details</h1>
+  <div class="all-container">
+    <div class="details-container">
+      <div class="titles">
+        <h2>Personal Details</h2>
+        <h2>Unique Code: {{ cs.unique_code }}</h2>
+      </div>
+      <div class="content-text">
+        <h3>Full Name:</h3>
+        <p>{{ cs.name }}</p>
+      </div>
+      <div class="content-text">
+        <h3>Gender:</h3>
+        <p>{{ cs.gender }}</p>
+      </div>
+      <div class="content-text">
+        <h3>Telephone Number:</h3>
+        <p>{{ cs.phone_number }}</p>
+      </div>
+      <div class="content-text">
+        <h3>Address:</h3>
+        <p>{{ cs.address }}</p>
+      </div>
+      <div class="content-text">
+        <h3>Age Bracket:</h3>
+        <p>{{ cs.age_bracket }}</p>
+      </div>
+      <div class="content-text">
+        <h3>Disability Status:</h3>
+        <p>{{ cs.disability_status }}</p>
+      </div>
+      <div class="content-text">
+        <h3>Purpose:</h3>
+        <p>{{ cs.purpose }}</p>
+      </div>
+      {% if cs.purpose == "Complaint" %}
+      <div class="content-text">
+        <h3>Complainant:</h3>
+        <p>{{ cs.complaint_to }}</p>
+      </div>
+      <div class="content-text-textbox">
+        <h3>Complaint:</h3>
+        <p>{{ cs.complaint_content }}</p>
+      </div>
+      <div class="content-text-textbox">
+        <h3>Response:</h3>
+        <p>{{ cs.complaint_response }}</p>
+      </div>
+      {% elif cs.purpose == "Enquiries" %}
+      <div class="content-text-textbox">
+        <h3>Enquiries:</h3>
+        <p>{{ cs.enquiries_content }}</p>
+      </div>
+      <div class="content-text-textbox">
+        <h3>Response:</h3>
+        <p>{{ cs.enquiries_response }}</p>
+      </div>
+      {% elif cs.purpose == "Visit" %}
+      <div class="content-text">
+        <h3>Visitors Tag Number:</h3>
+        <p>{{ cs.tag_number }}</p>
+      </div>
+      <div class="content-text">
+        <h3>Office:</h3>
+        <p>{{ cs.office }}</p>
+      </div>
+      <div class="content-text">
+        <h3>Receipient Name:</h3>
+        <p>{{ cs.receipient_name }}</p>
+      </div>
+      <div class="content-text">
+        <h3>Purpose Of Visit:</h3>
+        <p>{{ cs.purpose_visit }}</p>
+      </div>
+      {% endif %}
+    </div>
+    <div class="actions">
+      <a class="green" href="{{ url_for('admin_back') }}">Back</a>
+
+      {% if cs.purpose == "Complaint" or cs.purpose == "Enquiries" %}
+      <a class="ash" href="{{ url_for('admin_response_cs', id=cs.id) }}"
+        >Respond</a
+      >
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}

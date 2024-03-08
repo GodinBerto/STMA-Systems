@@ -82,10 +82,40 @@ Staff
                             <option value="Assets">Assets</option>
                             <option value="Stores Management">Stores Management</option>
                             <option value="Artisan">Artisan</option>
+                            <option value="Client Service Unit">Client Service Unit</option>
+                            <option value="Records Management Unit">Records Management Unit</option>
+                            <option value="Notification">Notification</option>
                         </select>
                     </div>
                 `;
-      } else {
+      } else if(selectedRole === "ADMIN"){
+        dynamicFormContainer.innerHTML = `
+        <div class="checkbox-table">
+            <label>Access <span class="hash">*</span></label>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Store Rent</th>
+                        <th>Asset</th>
+                        <th>Stores Management</th>
+                        <th>Artisan</th>
+                        <th>Client Service Unit</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><input type="checkbox" name="access" id="access_store_rent" value="Store Rent"></td>
+                        <td><input type="checkbox" name="access" id="access_asset" value="Asset"></td>
+                        <td><input type="checkbox" name="access" id="access_stores_management" value="Stores Management"></td>
+                        <td><input type="checkbox" name="access" id="access_artisan" value="Artisan"></td>
+                        <td><input type="checkbox" name="access" id="access_cs" value="Client Service Unit"></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        `
+      }
+      else {
           dynamicFormContainer.innerHTML = `
 
         `;

@@ -1,0 +1,47 @@
+{% extends '/super_admin/base.html' %} {% block heading %} Notification {%
+endblock %} {% block content %}
+
+<!----------------------Search------------------------>
+<div class="search-container">
+  <form
+    class="search"
+    action="{{url_for ('notification_search')}}"
+    method="GET">
+    <input type="search" name="search" id="search" placeholder="Search" />
+    <input type="submit" value="Search" />
+  </form>
+</div>
+
+<div class="details">
+  <div class="recentOrders">
+    <div class="cardHeader">
+      <h2>Notification</h2>
+    </div>
+
+    <table>
+      <thead>
+        <tr>
+          <td>ID</td>
+          <td>Notification</td>
+          <td>Action</td>
+        </tr>
+      </thead>
+
+      <tbody>
+        {% for rmus in rmu %} {% if rmus.receiving_officer == "None" %}
+        <tr>
+          <td>{{rmus.id}}</td>
+          <td>Subject of letter "{{rmus.subject}}"</td>
+          <td class="action">
+            <a href="{{ url_for('add_rmu_officer', id=rmus.id) }}" class="btn"
+              >Complete</a
+            >
+          </td>
+        </tr>
+        {% endif %}{% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+{% endblock %}

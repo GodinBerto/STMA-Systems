@@ -1,6 +1,44 @@
 {% extends '/super_admin/base.html' %} {% block heading %} Departments {%
 endblock %} {% block content %}
 
+<div class="cardBox2">
+  <a class="card" href="#">
+    <div>
+      <div class="numbers">{{department_count}}</div>
+      <div class="cardName">Total Department Registered</div>
+    </div>
+
+    <div class="iconBx">
+      <ion-icon name="folder-open-outline"></ion-icon>
+    </div>
+  </a>
+
+  <a class="card" href="#dispatch">
+    <div>
+      <div class="numbers">{{unit_count}}</div>
+      <div class="cardName">Total Unit Registered</div>
+    </div>
+
+    <div class="iconBx">
+      <ion-icon name="paper-plane-outline"></ion-icon>
+    </div>
+  </a>
+</div>
+
+<!---------------------Dropdown-------------------------->
+<div class="action-drop">
+  <div class="drop-btn">
+    <button id="dropdown">
+      Actions <ion-icon name="chevron-down-outline"></ion-icon>
+    </button>
+  </div>
+  <div class="dropdownMenu" id="dropdownMenu">
+    <a href="{{url_for ('form1')}}">Register Department</a>
+    <a href="{{url_for ('form2')}}">Register Unit</a>
+    <a href="{{url_for('export_excel_stores')}}">Export</a>
+  </div>
+</div>
+
 <!----------------------Search------------------------>
 <div class="search-container">
   <form class="search" action="{{url_for ('department_search')}}" method="GET">
@@ -14,7 +52,6 @@ endblock %} {% block content %}
   <div class="recentOrders">
     <div class="cardHeader">
       <h2>Departments</h2>
-      <a href="{{url_for ('choose')}}" class="btn">Add Department / Unit</a>
     </div>
 
     <table>
@@ -50,8 +87,5 @@ endblock %} {% block content %}
       </tbody>
     </table>
   </div>
-</div>
-<div class="export-container">
-  <a href="#" class="export">Export to Excel</a>
 </div>
 {% endblock %}

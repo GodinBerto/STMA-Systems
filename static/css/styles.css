@@ -44,6 +44,7 @@ body {
   display: flex;
   justify-content: space-between;
   flex-direction: column;
+  margin: 0;
 }
 
 .navigation.active {
@@ -396,6 +397,104 @@ body {
   color: var(--white);
 }
 
+.cardBox3 {
+  position: relative;
+  width: 100%;
+  padding: 20px;
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  grid-gap: 30px;
+  justify-content: center;
+}
+
+.cardBox3 .card {
+  position: relative;
+  background: var(--white);
+  padding: 30px;
+  border-radius: 20px;
+  display: flex;
+  justify-content: space-between;
+  cursor: pointer;
+  box-shadow: 0 7px 25px rgba(0, 0, 0, 0.08);
+  text-decoration: none;
+}
+
+.cardBox3 .card .numbers {
+  position: relative;
+  font-weight: 500;
+  font-size: 2.5rem;
+  color: var(--green);
+}
+
+.cardBox3 .card .cardName {
+  color: var(--black2);
+  font-size: 1.1rem;
+  margin-top: 5px;
+}
+
+.cardBox3 .card .iconBx {
+  font-size: 3.5rem;
+  color: var(--black2);
+}
+
+.cardBox3 .card:hover {
+  background: var(--green);
+}
+.cardBox3 .card:hover .numbers,
+.cardBox3 .card:hover .cardName,
+.cardBox3 .card:hover .iconBx {
+  color: var(--white);
+}
+
+.cardBox4 {
+  position: relative;
+  width: 100%;
+  padding: 20px;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  grid-gap: 30px;
+  justify-content: center;
+}
+
+.cardBox4 .card {
+  position: relative;
+  background: var(--white);
+  padding: 30px;
+  border-radius: 20px;
+  display: flex;
+  justify-content: space-between;
+  cursor: pointer;
+  box-shadow: 0 7px 25px rgba(0, 0, 0, 0.08);
+  text-decoration: none;
+}
+
+.cardBox4 .card .numbers {
+  position: relative;
+  font-weight: 500;
+  font-size: 2.5rem;
+  color: var(--green);
+}
+
+.cardBox4 .card .cardName {
+  color: var(--black2);
+  font-size: 1.1rem;
+  margin-top: 5px;
+}
+
+.cardBox4 .card .iconBx {
+  font-size: 3.5rem;
+  color: var(--black2);
+}
+
+.cardBox4 .card:hover {
+  background: var(--green);
+}
+.cardBox4 .card:hover .numbers,
+.cardBox4 .card:hover .cardName,
+.cardBox4 .card:hover .iconBx {
+  color: var(--white);
+}
+
 /****************DropDown*****************/
 .action-drop {
   padding: 0 20px;
@@ -468,19 +567,21 @@ body {
   /* margin-left: 10px; */
 }
 
-.details_table .recentOrders {
+.details_table .recentOrders .recentOrderBody {
   position: relative;
-  display: grid;
-  min-height: 100%;
+  height: auto;
   background: var(--white);
   padding: 20px;
+  display: flex;
+  flex-direction: column;
   box-shadow: 0 7px 25px rgba(0, 0, 0, 0.08);
   border-radius: 20px;
 }
+
 .details .recentOrders {
   position: relative;
   display: grid;
-  min-height: 100%;
+  min-height: auto;
   background: var(--white);
   padding: 20px;
   box-shadow: 0 7px 25px rgba(0, 0, 0, 0.08);
@@ -647,11 +748,56 @@ body {
 }
 
 .export {
-  padding: 10px;
-  background-color: var(--green);
-  text-decoration: none;
-  color: var(--white);
-  border-radius: 3px;
+  padding: 5px;
+  margin-left: 20px;
+  color: white;
+  background-color: rgb(61, 61, 255);
+  font-size: 1.2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+}
+
+.checkbox-table {
+  margin: 20px;
+}
+
+.checkbox-table table {
+  margin-top: 10px;
+  width: 550px;
+  border-collapse: collapse;
+}
+
+.checkbox-table th,
+.checkbox-table td {
+  border: 1px solid #ddd;
+  padding: 8px;
+  text-align: left;
+}
+
+/* Style the header row */
+.checkbox-table thead {
+  background-color: #f2f2f2;
+}
+
+/* Style alternating rows in the tbody for better readability */
+.checkbox-table tbody tr:nth-child(even) {
+  background-color: #f9f9f9;
+}
+
+/* Style the checkboxes */
+.checkbox-table input[type="checkbox"] {
+  margin-right: 5px;
+}
+
+/* Highlight the row when a checkbox is checked */
+.checkbox-table tbody input[type="checkbox"]:checked {
+  background-color: #c2e0c6;
+}
+
+.checkbox-table label {
+  font-weight: 600;
 }
 
 /********************* Flash Message *********************/
@@ -727,7 +873,18 @@ body {
   flex-direction: column;
 }
 
+.content-container .details-input-generate {
+  width: 350px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
 .content-container .details-input label {
+  font-weight: 600;
+}
+
+.content-container .details-input-generate label {
   font-weight: 600;
 }
 
@@ -740,8 +897,26 @@ body {
   border-radius: 5px;
 }
 
+.content-container .details-input-generate input[type="text"] {
+  width: 200px;
+  padding: 15px 20px;
+  margin: 10px 0;
+  outline: none;
+  border: 1px solid var(--black2);
+  border-radius: 5px;
+}
+
 .content-container .details-input input[type="number"] {
   width: 550px;
+  padding: 15px 20px;
+  margin: 10px 0;
+  outline: none;
+  border: 1px solid var(--black2);
+  border-radius: 5px;
+}
+
+.content-container .details-input-generate input[type="number"] {
+  width: 200px;
   padding: 15px 20px;
   margin: 10px 0;
   outline: none;
@@ -1046,6 +1221,49 @@ body {
   overflow-wrap: break-word;
 }
 
+.type-generate {
+  display: flex;
+  align-items: center;
+}
+
+.generate-form {
+  padding: 10px;
+  background-color: var(--green);
+  color: #fff;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.status-red {
+  height: 100%;
+  content: "";
+  width: 5px;
+  border-radius: 4px;
+  background-color: red;
+  display: block;
+  padding: 20px 3px; /* or use display: inline-block; depending on your layout */
+}
+
+.status-yellow {
+  height: 100%;
+  content: "";
+  width: 5px;
+  border-radius: 4px;
+  background-color: yellow;
+  display: block;
+  padding: 20px 3px; /* or use display: inline-block; depending on your layout */
+}
+
+.complete {
+  padding: 5px 8px;
+  background-color: #007bff;
+  margin-left: 5px;
+  text-decoration: none;
+  color: #fff;
+  border-radius: 4px;
+}
+
 /* ====================== Responsive Design ========================== */
 @media (max-width: 991px) {
   .navigation {
@@ -1128,6 +1346,87 @@ body {
     flex-direction: column;
     gap: 20px;
   }
+  .main.active {
+    left: 300px;
+  }
+  .content-container .details-input input {
+    width: 100%;
+    padding: 15px 20px;
+    margin: 10px 0;
+    outline: none;
+    border: 1px solid var(--black2);
+    border-radius: 5px;
+  }
+  .content-container .details-input input[type="text"] {
+    width: 100%;
+    padding: 15px 20px;
+    margin: 10px 0;
+    outline: none;
+    border: 1px solid var(--black2);
+    border-radius: 5px;
+  }
+
+  .content-container .details-input input[type="number"] {
+    width: 100%;
+    padding: 15px 20px;
+    margin: 10px 0;
+    outline: none;
+    border: 1px solid var(--black2);
+    border-radius: 5px;
+  }
+
+  .content-container .details-input input[type="date"] {
+    width: 100%;
+    padding: 15px 20px;
+    margin: 10px 0;
+    outline: none;
+    border: 1px solid var(--black2);
+    border-radius: 5px;
+  }
+
+  .content-container .details-input input[type="email"] {
+    width: 100%;
+    padding: 15px 20px;
+    margin: 10px 0;
+    outline: none;
+    border: 1px solid var(--black2);
+    border-radius: 5px;
+  }
+
+  .content-container .details-input input[type="password"] {
+    width: 100%;
+    padding: 15px 20px;
+    margin: 10px 0;
+    outline: none;
+    border: 1px solid var(--black2);
+    border-radius: 5px;
+  }
+
+  .content-container .details-input input[type="file"] {
+    width: 100%;
+    padding: 15px 20px;
+    margin: 10px 0;
+    outline: none;
+    border: 1px solid var(--black2);
+    border-radius: 5px;
+  }
+
+  .content-container .details-input select {
+    width: 550px;
+    padding: 15px 20px;
+    margin: 10px 0;
+    outline: none;
+    border: 1px solid var(--black2);
+    border-radius: 5px;
+  }
+  .content-container .details-input select {
+    width: 100%;
+    padding: 15px 20px;
+    margin: 10px 0;
+    outline: none;
+    border: 1px solid var(--black2);
+    border-radius: 5px;
+  }
 }
 
 @media (max-width: 480px) {
@@ -1138,11 +1437,22 @@ body {
   .user-content.active {
     display: block;
   }
+  .navigation ul {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    overflow-x: scroll;
+  }
   .cardBox {
     grid-template-columns: repeat(1, 1fr);
   }
   .cardBox2 {
     grid-template-columns: repeat(1, 1fr);
+  }
+  .cardBox3 {
+    grid-template-columns: repeat(3, 1fr);
   }
   .cardHeader h2 {
     font-size: 20px;
@@ -1167,11 +1477,14 @@ body {
   .toggle {
     z-index: 10001;
   }
+  .main.active {
+    left: 0px;
+  }
   .main.active .toggle {
     color: #fff;
     position: fixed;
     right: 0;
-    left: 56%;
+    justify-content: end;
   }
   .content-container .details-input input {
     width: 100%;

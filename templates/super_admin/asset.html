@@ -1,6 +1,220 @@
 {% extends '/super_admin/base.html' %} {% block heading %} Assets {% endblock %}
 {% block content %}
 
+<!----------------------Cards------------------------->
+<div class="cardBox">
+  <a class="card" href="#">
+    <div>
+      <div class="numbers">{{asset_count}}</div>
+      <div class="cardName">Total IT Asset</div>
+    </div>
+
+    <div class="iconBx">
+      <ion-icon name="folder-open-outline"></ion-icon>
+    </div>
+  </a>
+
+  <a class="card" href="#dispatch">
+    <div>
+      <div class="numbers">{{asset_count_status_active}}</div>
+      <div class="cardName">Total Asset Active</div>
+    </div>
+
+    <div class="iconBx">
+      <ion-icon name="paper-plane-outline"></ion-icon>
+    </div>
+  </a>
+
+  <a class="card" href="#dispatch">
+    <div>
+      <div class="numbers">{{asset_count_status_inactive}}</div>
+      <div class="cardName">Total Asset Inactive</div>
+    </div>
+
+    <div class="iconBx">
+      <ion-icon name="paper-plane-outline"></ion-icon>
+    </div>
+  </a>
+</div>
+
+<div class="cardBox3">
+  <a class="card" href="#">
+    <div>
+      <div class="numbers">{{asset_count_printer}}</div>
+      <div class="cardName">Total Printers Added</div>
+    </div>
+
+    <div class="iconBx">
+      <ion-icon name="print-outline"></ion-icon>
+    </div>
+  </a>
+
+  <a class="card" href="#dispatch">
+    <div>
+      <div class="numbers">{{asset_count_desktop}}</div>
+      <div class="cardName">Total Desktop Computer Added</div>
+    </div>
+
+    <div class="iconBx">
+      <ion-icon name="desktop-outline"></ion-icon>
+    </div>
+  </a>
+
+  <a class="card" href="#">
+    <div>
+      <div class="numbers">{{asset_count_laptop}}</div>
+      <div class="cardName">Total Laptop Added</div>
+    </div>
+
+    <div class="iconBx">
+      <ion-icon name="laptop-outline"></ion-icon>
+    </div>
+  </a>
+
+  <a class="card" href="#dispatch">
+    <div>
+      <div class="numbers">{{asset_count_switch}}</div>
+      <div class="cardName">Total Switch Added</div>
+    </div>
+
+    <div class="iconBx">
+      <ion-icon name="toggle-outline"></ion-icon>
+    </div>
+  </a>
+
+  <a class="card" href="#">
+    <div>
+      <div class="numbers">{{asset_count_photocopier}}</div>
+      <div class="cardName">Total Photocopier Added</div>
+    </div>
+
+    <div class="iconBx">
+      <ion-icon name="print-outline"></ion-icon>
+    </div>
+  </a>
+
+  <a class="card" href="#dispatch">
+    <div>
+      <div class="numbers">{{asset_count_ups}}</div>
+      <div class="cardName">Total UPS Added</div>
+    </div>
+
+    <div class="iconBx">
+      <ion-icon name="cube-outline"></ion-icon>
+    </div>
+  </a>
+
+  <a class="card" href="#">
+    <div>
+      <div class="numbers">{{asset_count_stabilizer}}</div>
+      <div class="cardName">Total Stabilizers Added</div>
+    </div>
+
+    <div class="iconBx">
+      <ion-icon name="file-tray-stacked-outline"></ion-icon>
+    </div>
+  </a>
+
+  <a class="card" href="#">
+    <div>
+      <div class="numbers">{{asset_count_camera}}</div>
+      <div class="cardName">Total camera's Added</div>
+    </div>
+
+    <div class="iconBx">
+      <ion-icon name="camera-outline"></ion-icon>
+    </div>
+  </a>
+
+  <a class="card" href="#">
+    <div>
+      <div class="numbers">{{asset_count_cctv}}</div>
+      <div class="cardName">Total CCTV Added</div>
+    </div>
+
+    <div class="iconBx">
+      <ion-icon name="camera-outline"></ion-icon>
+    </div>
+  </a>
+
+  <a class="card" href="#">
+    <div>
+      <div class="numbers">{{asset_count_tablet}}</div>
+      <div class="cardName">Total Tablets Added</div>
+    </div>
+
+    <div class="iconBx">
+      <ion-icon name="tablet-portrait-outline"></ion-icon>
+    </div>
+  </a>
+
+  <a class="card" href="#">
+    <div>
+      <div class="numbers">{{asset_count_scanners}}</div>
+      <div class="cardName">Total Scanners Added</div>
+    </div>
+
+    <div class="iconBx">
+      <ion-icon name="scan-outline"></ion-icon>
+    </div>
+  </a>
+
+  <a class="card" href="#">
+    <div>
+      <div class="numbers">{{asset_count_server}}</div>
+      <div class="cardName">Total Servers Added</div>
+    </div>
+
+    <div class="iconBx">
+      <ion-icon name="server-outline"></ion-icon>
+    </div>
+  </a>
+
+  <a class="card" href="#">
+    <div>
+      <div class="numbers">{{asset_count_television}}</div>
+      <div class="cardName">Total Televisions Added</div>
+    </div>
+
+    <div class="iconBx">
+      <ion-icon name="tv-outline"></ion-icon>
+    </div>
+  </a>
+
+  <a class="card" href="#">
+    <div>
+      <div class="numbers">{{asset_count_routers}}</div>
+      <div class="cardName">Total Routers Added</div>
+    </div>
+
+    <div class="iconBx">
+      <ion-icon name="stats-chart-outline"></ion-icon>
+    </div>
+  </a>
+
+  <a class="card" href="#">
+    <div>
+      <div class="numbers">{{asset_count_nvr}}</div>
+      <div class="cardName">Total NVR's Added</div>
+    </div>
+
+    <div class="iconBx">
+      <ion-icon name="file-tray-full-outline"></ion-icon>
+    </div>
+  </a>
+
+  <a class="card" href="#dispatch">
+    <div>
+      <div class="numbers">{{asset_count_projector}}</div>
+      <div class="cardName">Total Projector's Added</div>
+    </div>
+
+    <div class="iconBx">
+      <ion-icon name="aperture-outline"></ion-icon>
+    </div>
+  </a>
+</div>
+
 <!----------------------Search------------------------>
 <div class="search-container">
   <form class="search" action="{{url_for ('asset_search')}}" method="GET">
@@ -9,12 +223,24 @@
   </form>
 </div>
 
+<!---------------------Dropdown-------------------------->
+<div class="action-drop">
+  <div class="drop-btn">
+    <button id="dropdown">
+      Actions <ion-icon name="chevron-down-outline"></ion-icon>
+    </button>
+  </div>
+  <div class="dropdownMenu" id="dropdownMenu">
+    <a href="{{url_for ('add_asset')}}">Add Asset</a>
+    <a href="{{url_for('export_excel_asset')}}">Export</a>
+  </div>
+</div>
+
 <!-- ================ Order Details List ================= -->
 <div class="details">
   <div class="recentOrders">
     <div class="cardHeader">
       <h2>Assets</h2>
-      <a href="{{url_for ('add_asset')}}" class="btn">Add Asset</a>
     </div>
 
     <table>
@@ -55,7 +281,5 @@
     </table>
   </div>
 </div>
-<div class="export-container">
-  <a href="{{url_for('export_excel_asset')}}" class="export">Export to Excel</a>
-</div>
+
 {% endblock %}

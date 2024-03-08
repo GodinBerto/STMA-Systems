@@ -1,0 +1,144 @@
+{% extends '/admin/base.html' %} {% block heading %} Artisan {% endblock %} {%
+block content %}
+<div class="content-container">
+  <h1>Full Details</h1>
+  <div class="all-container">
+    <div class="details-container">
+      <div class="titles">
+        <h2>Personal Details</h2>
+        <h2>Artisan Id: {{ artisan.id }}</h2>
+      </div>
+      <div class="photo-image">
+        {% set image = artisan.image if artisan.image is not none else
+        'user.jpg' %}
+        <img
+          src="{{ url_for('static', filename='/images/' + image) }}"
+          alt="" />
+      </div>
+      <div class="content-text">
+        <h3>Full Name:</h3>
+        <p>{{ artisan.name }}</p>
+      </div>
+      <div class="content-text">
+        <h3>Gender:</h3>
+        <p>{{ artisan.gender }}</p>
+      </div>
+      <div class="content-text">
+        <h3>Telephone Number:</h3>
+        <p>{{ artisan.phone_number }}</p>
+      </div>
+      <div class="content-text">
+        <h3>Date Of Birth:</h3>
+        <p>{{ artisan.officer }}</p>
+      </div>
+      <div class="content-text">
+        <h3>Nationality:</h3>
+        <p>{{ artisan.nationality }}</p>
+      </div>
+      <div class="content-text">
+        <h3>Email:</h3>
+        <p>{{ artisan.email }}</p>
+      </div>
+      <div class="content-text">
+        <h3>Type Of ID:</h3>
+        <p>{{ artisan.id_type }}</p>
+      </div>
+      <div class="content-text">
+        <h3>Card Number:</h3>
+        <p>{{ artisan.id_number }}</p>
+      </div>
+      <div class="photo-image">
+        <h3>Photo Of ID:</h3>
+        {% set id_image = artisan.id_image if artisan.id_image is not none else
+        'user.jpg' %}
+        <img
+          src="{{ url_for('static', filename='/images/' + id_image) }}"
+          alt="" />
+      </div>
+      <div class="content-text">
+        <h3>Postal Address:</h3>
+        <p>{{ artisan.home_postal }}</p>
+      </div>
+      <div class="content-text">
+        <h3>GPS Address:</h3>
+        <p>{{ artisan.home_gps }}</p>
+      </div>
+
+      <div class="titles">
+        <h2>Profession Details</h2>
+      </div>
+      <div class="content-text">
+        <h3>Profession:</h3>
+        <p>{{ artisan.profession }}</p>
+      </div>
+      <div class="content-text">
+        <h3>Years In Profession:</h3>
+        <p>{{ artisan.year_profession }}</p>
+      </div>
+      <div class="content-text">
+        <h3>Workshop Location:</h3>
+        <p>{{ artisan.shop_location }}</p>
+      </div>
+      <div class="content-text">
+        <h3>Workshop GPS Address:</h3>
+        <p>{{ artisan.shop_gps }}</p>
+      </div>
+      <div class="content-text">
+        <h3>Date Of Registration:</h3>
+        <p>{{ artisan.date_registered }}</p>
+      </div>
+
+      <div class="titles">
+        <h2>Association Details</h2>
+      </div>
+      <div class="content-text">
+        <h3>Name Of Association:</h3>
+        <p>{{ artisan.association_name }}</p>
+      </div>
+      <div class="content-text">
+        <h3>Name Of The President/Chairperson:</h3>
+        <p>{{ artisan.association_president }}</p>
+      </div>
+      <div class="content-text">
+        <h3>Tell No. Chairperson/President:</h3>
+        <p>{{ artisan.association_number }}</p>
+      </div>
+
+      <div class="titles">
+        <h2>Parent Details</h2>
+      </div>
+      <div class="content-text">
+        <h3>Father's Name:</h3>
+        <p>{{ artisan.fathers_name }}</p>
+      </div>
+      <div class="content-text">
+        <h3>Father's Status:</h3>
+        <p>{{ artisan.fathers_status }}</p>
+      </div>
+      {% if artisan.fathers_status == 'Alive' %}
+      <div class="content-text">
+        <h3>Father's Telephone Number:</h3>
+        <p>{{ artisan.fathers_number }}</p>
+      </div>
+      {% endif %}
+      <div class="content-text">
+        <h3>Mother's Name:</h3>
+        <p>{{ artisan.mothers_name }}</p>
+      </div>
+      <div class="content-text">
+        <h3>Mother's Status:</h3>
+        <p>{{ artisan.mothers_status }}</p>
+      </div>
+      {% if artisan.mothers_status == 'Alive' %}
+      <div class="content-text">
+        <h3>Mother's Telephone Number:</h3>
+        <p>{{ artisan.mothers_number }}</p>
+      </div>
+      {% endif %}
+    </div>
+    <div class="actions">
+      <a class="green" href="{{ url_for('admin_back') }}">Back</a>
+    </div>
+  </div>
+</div>
+{% endblock %}

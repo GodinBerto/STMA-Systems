@@ -16,17 +16,36 @@ endblock %} {% block content %}
         <p>{{ sms.serial_number }}</p>
       </div>
       <div class="content-text">
-        <h3>Quantity:</h3>
-        <p>{{ sms.quantity }}</p>
+        <h3>Quantity Requested:</h3>
+        <p>{{ sms.quantity_requested }}</p>
+      </div>
+      <div class="content-text">
+        <h3>Quantity Received:</h3>
+        <p>{{ sms.quantity_received }}</p>
+      </div>
+      <div class="content-text">
+        <h3>Quantity Difference:</h3>
+        <p>{{ sms.difference }}</p>
+      </div>
+      <div class="content-text">
+        <h3>Company Name/Supplier:</h3>
+        <p>{{ sms.supplier_name }}</p>
+      </div>
+      <div class="content-text">
+        <h3>Requesting Department:</h3>
+        <p>{{ sms.requested_dept }}</p>
       </div>
       <div class="content-text">
         <h3>Date Recieved:</h3>
         <p>{{ sms.date_recieved }}</p>
       </div>
+      <div class="content-text">
+        <h3>Staff:</h3>
+        <p>{{ sms.staff }}</p>
+      </div>
     </div>
     <div class="actions">
       <a class="green" href="{{ url_for('admin_back') }}">Back</a>
-      <a class="blue" href="{{url_for('admin_sms_update', id=sms.id)}}">Edit</a>
     </div>
   </div>
 </div>

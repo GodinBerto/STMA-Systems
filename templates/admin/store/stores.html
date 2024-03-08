@@ -1,5 +1,30 @@
-{% extends '/admin/base.html' %} {% block heading %} Stores {% endblock %} {%
-block content %}
+{% extends '/admin/base.html' %} {% block heading %} Store Rent {% endblock %}
+{% block content %}
+
+<!----------------------Cards------------------------->
+<div class="cardBox2">
+  <a class="card" href="#">
+    <div>
+      <div class="numbers">{{total_store_count}}</div>
+      <div class="cardName">Stores Rgeistered</div>
+    </div>
+
+    <div class="iconBx">
+      <ion-icon name="storefront-outline"></ion-icon>
+    </div>
+  </a>
+
+  <a class="card" href="#">
+    <div>
+      <div class="numbers">Ghs {{total_rent}}</div>
+      <div class="cardName">Total Rent Recieved</div>
+    </div>
+
+    <div class="iconBx">
+      <ion-icon name="cash-outline"></ion-icon>
+    </div>
+  </a>
+</div>
 
 <!----------------------Search------------------------>
 <div class="search-container">
@@ -9,12 +34,24 @@ block content %}
   </form>
 </div>
 
+<!---------------------Dropdown-------------------------->
+<div class="action-drop">
+  <div class="drop-btn">
+    <button id="dropdown">
+      Actions <ion-icon name="chevron-down-outline"></ion-icon>
+    </button>
+  </div>
+  <div class="dropdownMenu" id="dropdownMenu">
+    <a href="{{url_for ('admin_store_reg')}}">Add Store</a>
+    <a href="{{url_for('export_excel_stores')}}">Export</a>
+  </div>
+</div>
+
 <!-- ================ Order Details List ================= -->
 <div class="details">
   <div class="recentOrders">
     <div class="cardHeader">
-      <h2>Stores</h2>
-      <a href="{{url_for ('admin_store_reg')}}" class="btn">Add Stores</a>
+      <h2>Store Rent</h2>
     </div>
 
     <table>

@@ -4,12 +4,16 @@ from flask import Flask, Response, render_template, request, redirect, url_for, 
 import pandas as pd
 from werkzeug.utils import secure_filename
 from reportlab.pdfgen import canvas
+from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+from reportlab.lib import colors
+from reportlab.platypus import SimpleDocTemplate, Paragraph
 import csv
 from functools import wraps
 import sqlite3
 from datetime import datetime
 import threading
 from io import BytesIO
+
 
 # Flask
 app = Flask(__name__)
@@ -41,6 +45,16 @@ def create_users_table():
                 email text,
                 gender text,
                 access text,
+                access1 boolean,
+                access2 boolean,
+                access3 boolean,
+                access4 boolean,
+                access5 boolean,
+                access6 boolean,
+                access7 boolean,
+                access8 boolean,
+                access9 boolean,
+                access10 boolean,
                 image BLOB
             )
         ''')
@@ -106,6 +120,7 @@ def index():
     create_sms_dispatch_table()
     create_artisan_table()
     create_cs_table()
+    create_rmu_table()
 
     if request.method == 'POST':
         username = request.form.get('username')
@@ -117,22 +132,51 @@ def index():
             role = user['role']
             access = user['access']
 
+            print(
+                f"Logged in as {username} with role: {role} and access: {access}")
+
             # Successful login, store user info in session
             session['user_id'] = user_id
 
             if role == 'SUPER ADMIN':
+                print("Redirecting to dashboard for SUPER ADMIN")
                 return redirect(url_for('dashboard'))
+
             elif role == 'ADMIN':
-                return redirect(url_for('admin_stores'))
+                if 'Store Rent' in access:
+                    print("Redirecting to Store Rent for ADMIN with access")
+                    return redirect(url_for('admin_stores'))
+                if 'Asset' in access:
+                    print("Redirecting to Asset for ADMIN with access")
+                    return redirect(url_for('admin_asset'))
+                if 'Stores Management' in access:
+                    print("Redirecting to Stores Management for ADMIN with access")
+                    return redirect(url_for('admin_sms'))
+                if 'Artisan' in access:
+                    print("Redirecting to Artisan for ADMIN with access")
+                    return redirect(url_for('admin_artisan'))
+                if 'Client Service Unit' in access:
+                    print("Redirecting to Client Service Unit for ADMIN with access")
+                    return redirect(url_for('admin_cs'))
+                else:
+                    print("Redirecting to index")
+                    return render_template('index.html', error='No Permission Granted')
+
             elif role == 'DATA ENTRY':
                 if access == 'Store Rent':
                     return redirect(url_for('staff_stores'))
                 elif access == 'Assets':
                     return redirect(url_for('staff_asset'))
-                elif access == 'Artisan':
-                    return redirect(url_for('staff_artisan'))
                 elif access == 'Stores Management':
                     return redirect(url_for('staff_sms'))
+                elif access == 'Artisan':
+                    return redirect(url_for('staff_artisan'))
+                elif access == 'Client Service Unit':
+                    return redirect(url_for('staff_cs'))
+                elif access == 'Records Management Unit':
+                    return redirect(url_for('staff_rmu'))
+                elif access == 'Notification':
+                    return redirect(url_for('staff_notification'))
                 else:
                     return render_template('index.html', error='Invalid username or password')
             else:
@@ -400,6 +444,9 @@ def create_artisan_table():
                 residential_gps text,
                 home_postal text,
                 home_gps text,
+                association_name text,
+                association_president text,
+                association_number number,
                 staff text,
                 FOREIGN KEY (name) REFERENCES store(name)
                 )
@@ -443,7 +490,39 @@ def create_cs_table():
         ''')
         conn.commit()
         conn.close()
-#
+
+
+# Create rmu Table
+def get_rmu_db_connection():
+    conn = sqlite3.connect('instance/rmu.db')
+    conn.row_factory = sqlite3.Row
+    return conn, conn.cursor()
+
+
+def create_rmu_table():
+    with table_creation_lock:
+        conn, cursor = get_rmu_db_connection()
+        cursor.execute('''
+            CREATE TABLE IF NOT EXISTS rmu (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                letter_date date,
+                date_recieved date,
+                category text,
+                instituition_name text,
+                instituition_reference text,
+                received_by text,
+                subject text,
+                copy blob,
+                receiving_office text,
+                receiving_officer text,
+                our_reference number,
+                file_number number,
+                status text
+                )
+        ''')
+        conn.commit()
+        conn.close()
+
 
 # --------------------------------------------------------------Super Admin------------------------------------------------------------------------------
 
@@ -524,15 +603,28 @@ def stores():
         user = get_user_by_id(user_id)
 
         conn, cursor = get_stores_db_connection()
-        cursor.execute("SELECT * FROM shop")
+        cursor.execute("SELECT * FROM shop ORDER BY id DESC LIMIT 10")
+        store_lists = cursor.fetchall()
+        conn.close()
+
+        conn, cursor = get_stores_db_connection()
+        cursor.execute('SELECT COUNT(id) FROM shop')
+        total_store_count = cursor.fetchone()[0]
+        conn.close()
+
+        conn, cursor = get_stores_db_connection()
+        cursor.execute("SELECT rent FROM shop")
         store_list = cursor.fetchall()
         conn.close()
+
+        total_rent = sum(store['rent'] for store in store_lists)
+        formatted_total_rent = '{:,}'.format(total_rent)
 
         if user:
             username = user['username']
             role = user['role']
             image = user['image']
-            return render_template('/super_admin/stores.html', username=username, role=role, stores=store_list, image=image)  # noqa
+            return render_template('/super_admin/stores.html', username=username, role=role, stores=store_lists, image=image, total_rent=formatted_total_rent, store_list=store_list, total_store_count=total_store_count)  # noqa
     return redirect(url_for('index'))
 
 
@@ -929,6 +1021,119 @@ def asset():
         user = get_user_by_id(user_id)
 
         conn, cursor = get_asset_db_connection()
+        cursor.execute("SELECT COUNT(id) FROM asset")
+        asset_count = cursor.fetchone()[0]
+        conn.close()
+
+        conn, cursor = get_asset_db_connection()
+        cursor.execute(
+            "SELECT COUNT(id) FROM asset WHERE device_status='Active'")
+        asset_count_status_active = cursor.fetchone()[0]
+        conn.close()
+
+        conn, cursor = get_asset_db_connection()
+        cursor.execute(
+            "SELECT COUNT(id) FROM asset WHERE device_status='Inactive'")
+        asset_count_status_inactive = cursor.fetchone()[0]
+        conn.close()
+
+        conn, cursor = get_asset_db_connection()
+        cursor.execute(
+            "SELECT COUNT(id) FROM asset WHERE device_name='Desktop Computer'")
+        asset_count_desktop = cursor.fetchone()[0]
+        conn.close()
+
+        conn, cursor = get_asset_db_connection()
+        cursor.execute(
+            "SELECT COUNT(id) FROM asset WHERE device_name='Laptop'")
+        asset_count_laptop = cursor.fetchone()[0]
+        conn.close()
+
+        conn, cursor = get_asset_db_connection()
+        cursor.execute(
+            "SELECT COUNT(id) FROM asset WHERE device_name='Printer'")
+        asset_count_printer = cursor.fetchone()[0]
+        conn.close()
+
+        conn, cursor = get_asset_db_connection()
+        cursor.execute(
+            "SELECT COUNT(id) FROM asset WHERE device_name='Photocopier'")
+        asset_count_photocopier = cursor.fetchone()[0]
+        conn.close()
+
+        conn, cursor = get_asset_db_connection()
+        cursor.execute(
+            "SELECT COUNT(id) FROM asset WHERE device_name='Universal Power Supply (UPS)'")
+        asset_count_ups = cursor.fetchone()[0]
+        conn.close()
+
+        conn, cursor = get_asset_db_connection()
+        cursor.execute(
+            "SELECT COUNT(id) FROM asset WHERE device_name='Stabilizers'")
+        asset_count_stabilizer = cursor.fetchone()[0]
+        conn.close()
+
+        conn, cursor = get_asset_db_connection()
+        cursor.execute(
+            "SELECT COUNT(id) FROM asset WHERE device_name='Switch'")
+        asset_count_switch = cursor.fetchone()[0]
+        conn.close()
+
+        conn, cursor = get_asset_db_connection()
+        cursor.execute(
+            "SELECT COUNT(id) FROM asset WHERE device_name='Camera'")
+        asset_count_camera = cursor.fetchone()[0]
+        conn.close()
+
+        conn, cursor = get_asset_db_connection()
+        cursor.execute(
+            "SELECT COUNT(id) FROM asset WHERE device_name='Projector'")
+        asset_count_projector = cursor.fetchone()[0]
+        conn.close()
+
+        conn, cursor = get_asset_db_connection()
+        cursor.execute(
+            "SELECT COUNT(id) FROM asset WHERE device_name='Tablet'")
+        asset_count_tablet = cursor.fetchone()[0]
+        conn.close()
+
+        conn, cursor = get_asset_db_connection()
+        cursor.execute(
+            "SELECT COUNT(id) FROM asset WHERE device_name='CCTV'")
+        asset_count_cctv = cursor.fetchone()[0]
+        conn.close()
+
+        conn, cursor = get_asset_db_connection()
+        cursor.execute(
+            "SELECT COUNT(id) FROM asset WHERE device_name='Scanners'")
+        asset_count_scanners = cursor.fetchone()[0]
+        conn.close()
+
+        conn, cursor = get_asset_db_connection()
+        cursor.execute(
+            "SELECT COUNT(id) FROM asset WHERE device_name='Server'")
+        asset_count_server = cursor.fetchone()[0]
+        conn.close()
+
+        conn, cursor = get_asset_db_connection()
+        cursor.execute(
+            "SELECT COUNT(id) FROM asset WHERE device_name='Television'")
+        asset_count_television = cursor.fetchone()[0]
+        conn.close()
+
+        conn, cursor = get_asset_db_connection()
+        cursor.execute(
+            "SELECT COUNT(id) FROM asset WHERE device_name='Routers'")
+        asset_count_routers = cursor.fetchone()[0]
+        conn.close()
+
+        conn, cursor = get_asset_db_connection()
+        cursor.execute(
+            "SELECT COUNT(id) FROM asset WHERE device_name='NVR'")
+        asset_count_nvr = cursor.fetchone()[0]
+        conn.close()
+
+        conn, cursor = get_asset_db_connection()
         cursor.execute("SELECT * FROM asset")
         asset_list = cursor.fetchall()
         conn.close()
@@ -937,7 +1142,8 @@ def asset():
             username = user['username']
             role = user['role']
             image = user['image']
-            return render_template('/super_admin/asset.html', username=username, role=role, image=image, asset=asset_list)  # noqa
+
+            return render_template('/super_admin/asset.html', username=username, role=role, image=image, asset=asset_list, asset_count=asset_count, asset_count_status_active=asset_count_status_active, asset_count_status_inactive=asset_count_status_inactive, asset_count_desktop=asset_count_desktop, asset_count_laptop=asset_count_laptop, asset_count_printer=asset_count_printer, asset_count_photocopier=asset_count_photocopier, asset_count_ups=asset_count_ups, asset_count_stabilizer=asset_count_stabilizer, asset_count_switch=asset_count_switch, asset_count_camera=asset_count_camera, asset_count_projector=asset_count_projector, asset_count_tablet=asset_count_tablet, asset_count_cctv=asset_count_cctv, asset_count_scanners=asset_count_scanners, asset_count_server=asset_count_server, asset_count_television=asset_count_television, asset_count_routers=asset_count_routers, asset_count_nvr=asset_count_nvr)  # noqa
     return redirect(url_for('index'))
 
 
@@ -950,6 +1156,119 @@ def asset_search():
         # Retrieve user information from the database
         user = get_user_by_id(user_id)
 
+        conn, cursor = get_asset_db_connection()
+        cursor.execute("SELECT COUNT(id) FROM asset")
+        asset_count = cursor.fetchone()[0]
+        conn.close()
+
+        conn, cursor = get_asset_db_connection()
+        cursor.execute(
+            "SELECT COUNT(id) FROM asset WHERE device_status='Active'")
+        asset_count_status_active = cursor.fetchone()[0]
+        conn.close()
+
+        conn, cursor = get_asset_db_connection()
+        cursor.execute(
+            "SELECT COUNT(id) FROM asset WHERE device_status='Inactive'")
+        asset_count_status_inactive = cursor.fetchone()[0]
+        conn.close()
+
+        conn, cursor = get_asset_db_connection()
+        cursor.execute(
+            "SELECT COUNT(id) FROM asset WHERE device_name='Desktop Computer'")
+        asset_count_desktop = cursor.fetchone()[0]
+        conn.close()
+
+        conn, cursor = get_asset_db_connection()
+        cursor.execute(
+            "SELECT COUNT(id) FROM asset WHERE device_name='Laptop'")
+        asset_count_laptop = cursor.fetchone()[0]
+        conn.close()
+
+        conn, cursor = get_asset_db_connection()
+        cursor.execute(
+            "SELECT COUNT(id) FROM asset WHERE device_name='Printer'")
+        asset_count_printer = cursor.fetchone()[0]
+        conn.close()
+
+        conn, cursor = get_asset_db_connection()
+        cursor.execute(
+            "SELECT COUNT(id) FROM asset WHERE device_name='Photocopier'")
+        asset_count_photocopier = cursor.fetchone()[0]
+        conn.close()
+
+        conn, cursor = get_asset_db_connection()
+        cursor.execute(
+            "SELECT COUNT(id) FROM asset WHERE device_name='Universal Power Supply (UPS)'")
+        asset_count_ups = cursor.fetchone()[0]
+        conn.close()
+
+        conn, cursor = get_asset_db_connection()
+        cursor.execute(
+            "SELECT COUNT(id) FROM asset WHERE device_name='Stabilizers'")
+        asset_count_stabilizer = cursor.fetchone()[0]
+        conn.close()
+
+        conn, cursor = get_asset_db_connection()
+        cursor.execute(
+            "SELECT COUNT(id) FROM asset WHERE device_name='Switch'")
+        asset_count_switch = cursor.fetchone()[0]
+        conn.close()
+
+        conn, cursor = get_asset_db_connection()
+        cursor.execute(
+            "SELECT COUNT(id) FROM asset WHERE device_name='Camera'")
+        asset_count_camera = cursor.fetchone()[0]
+        conn.close()
+
+        conn, cursor = get_asset_db_connection()
+        cursor.execute(
+            "SELECT COUNT(id) FROM asset WHERE device_name='Projector'")
+        asset_count_projector = cursor.fetchone()[0]
+        conn.close()
+
+        conn, cursor = get_asset_db_connection()
+        cursor.execute(
+            "SELECT COUNT(id) FROM asset WHERE device_name='Tablet'")
+        asset_count_tablet = cursor.fetchone()[0]
+        conn.close()
+
+        conn, cursor = get_asset_db_connection()
+        cursor.execute(
+            "SELECT COUNT(id) FROM asset WHERE device_name='CCTV'")
+        asset_count_cctv = cursor.fetchone()[0]
+        conn.close()
+
+        conn, cursor = get_asset_db_connection()
+        cursor.execute(
+            "SELECT COUNT(id) FROM asset WHERE device_name='Scanners'")
+        asset_count_scanners = cursor.fetchone()[0]
+        conn.close()
+
+        conn, cursor = get_asset_db_connection()
+        cursor.execute(
+            "SELECT COUNT(id) FROM asset WHERE device_name='Server'")
+        asset_count_server = cursor.fetchone()[0]
+        conn.close()
+
+        conn, cursor = get_asset_db_connection()
+        cursor.execute(
+            "SELECT COUNT(id) FROM asset WHERE device_name='Television'")
+        asset_count_television = cursor.fetchone()[0]
+        conn.close()
+
+        conn, cursor = get_asset_db_connection()
+        cursor.execute(
+            "SELECT COUNT(id) FROM asset WHERE device_name='Routers'")
+        asset_count_routers = cursor.fetchone()[0]
+        conn.close()
+
+        conn, cursor = get_asset_db_connection()
+        cursor.execute(
+            "SELECT COUNT(id) FROM asset WHERE device_name='NVR'")
+        asset_count_nvr = cursor.fetchone()[0]
+        conn.close()
+
         search_query = request.args.get('search')
         session['search_query'] = search_query
 
@@ -960,8 +1279,8 @@ def asset_search():
 
         # Fetch data from the "stores" table that matches the search query
         conn, cursor = get_asset_db_connection()
-        cursor.execute("SELECT * FROM asset WHERE department LIKE ? OR officer LIKE ? OR unit LIKE ? OR device_name LIKE ? OR division LIKE ?",
-                       ('%' + search_query + '%', '%' + search_query + '%', '%' + search_query + '%', '%' + search_query + '%', '%' + search_query + '%'))
+        cursor.execute("SELECT * FROM asset WHERE department LIKE ? OR serial_number LIKE ? OR device_name LIKE ?",
+                       ('%' + search_query + '%', '%' + search_query + '%', '%' + search_query + '%'))
 
         search_results = cursor.fetchall()
         conn.close()
@@ -970,7 +1289,8 @@ def asset_search():
             username = user['username']
             role = user['role']
             image = user['image']
-            return render_template('/super_admin/asset.html', username=username, role=role, asset=search_results, image=image)  # noqa
+
+            return render_template('/super_admin/asset.html', username=username, role=role, image=image, asset=search_results, asset_count=asset_count, asset_count_status_active=asset_count_status_active, asset_count_status_inactive=asset_count_status_inactive, asset_count_desktop=asset_count_desktop, asset_count_laptop=asset_count_laptop, asset_count_printer=asset_count_printer, asset_count_photocopier=asset_count_photocopier, asset_count_ups=asset_count_ups, asset_count_stabilizer=asset_count_stabilizer, asset_count_switch=asset_count_switch, asset_count_camera=asset_count_camera, asset_count_projector=asset_count_projector, asset_count_tablet=asset_count_tablet, asset_count_cctv=asset_count_cctv, asset_count_scanners=asset_count_scanners, asset_count_server=asset_count_server, asset_count_television=asset_count_television, asset_count_routers=asset_count_routers, asset_count_nvr=asset_count_nvr)  # noqa
     # If the user is not logged in or an error occurs, redirect to the index page# noqa
     return redirect(url_for('index'))
 
@@ -1092,6 +1412,18 @@ def asset_add():
                 staff = request.form['staff']
 
                 conn, cursor = get_asset_db_connection()
+
+                # Check if the serial number already exists
+                cursor.execute(
+                    "SELECT * FROM asset WHERE serial_number = ?", (serial_number,))
+                existing_asset = cursor.fetchone()
+
+                if existing_asset:
+                    flash(
+                        "Serial number already exists. Please choose a different one.")
+                    conn.close()
+                    return redirect('asset')
+
                 if toner is not None and capacity is not None:
                     cursor.execute('''
                         INSERT INTO asset (department, unit, device_name, brand, serial_number, embosenuit_number,
@@ -1532,11 +1864,21 @@ def department():
         department_list = cursor.fetchall()
         conn.close()
 
+        conn, cursor = get_department_db_connection()
+        cursor.execute("SELECT COUNT(id) FROM department")
+        department_count = cursor.fetchone()[0]
+        conn.close()
+
+        conn, cursor = get_department_db_connection()
+        cursor.execute("SELECT COUNT(id) FROM unit")
+        unit_count = cursor.fetchone()[0]
+        conn.close()
+
         if user:
             username = user['username']
             role = user['role']
             image = user['image']
-            return render_template('super_admin/department.html', username=username, role=role, departments=department_list, image=image)  # noqa
+            return render_template('super_admin/department.html', username=username, role=role, departments=department_list, image=image, department_count=department_count, unit_count=unit_count)  # noqa
     return redirect(url_for('index'))
 
 
@@ -1920,8 +2262,7 @@ def search_staff():
 @login_required(role='SUPER ADMIN')
 def staff_add():
     if 'user_id' in session:
-        user_id = session['user_id']  # Get the user ID from the session
-        # Retrieve user information from the database
+        user_id = session['user_id']
         user = get_user_by_id(user_id)
 
         if user:
@@ -1932,34 +2273,45 @@ def staff_add():
             if request.method == 'POST':
                 conn, cursor = get_users_db_connection()
 
-                # Get data from the form for the users
                 name = request.form['username']
                 telnumber = request.form['telnumber']
                 gender = request.form['gender']
                 staff_email = request.form['email']
                 staff_role = request.form['role']
                 staff_password = request.form['password']
-                access = request.form.get('access', None)
+                access = request.form.getlist('access')
+                selected_access_levels = []
 
-                if access is None:
-                    # Insert data into the "users" table
+                if staff_role == 'SUPER ADMIN':
                     cursor.execute("INSERT INTO users (username, phone_number, gender, email, role, password) VALUES (?,?,?,?,?,?)",
                                    (name, telnumber, gender, staff_email, staff_role, staff_password))
-                else:
-                    # Insert data into the "users" table
+                elif staff_role == 'DATA ENTRY':
                     cursor.execute("INSERT INTO users (username, phone_number, gender, email, role, password, access) VALUES (?,?,?,?,?,?,?)",
-                                   (name, telnumber, gender, staff_email, staff_role, staff_password, access))
+                                   (name, telnumber, gender, staff_email, staff_role, staff_password, ', '.join(access)))
+                else:
+                    for access_level in access:
+                        selected_access_levels.append(access_level)
+
+                    if selected_access_levels:
+                        columns = ", ".join(selected_access_levels)
+                        placeholders = ", ".join(
+                            ["?" for _ in selected_access_levels])
+
+                        query = f'INSERT INTO users (username, phone_number, gender, email, role, password, access) VALUES (?,?,?,?,?,?,?)'
+                        values = (name, telnumber, gender, staff_email, staff_role,
+                                  staff_password, ', '.join(selected_access_levels))
+
+                        cursor.execute(query, values)
+
                 conn.commit()
                 conn.close()
 
                 flash("Staff Successfully Added")
 
-                # Redirect to the home page after submission
                 return redirect(url_for('staff'))
 
             return render_template('/super_admin/staff/staff-add.html', username=username, role=role, image=image)
 
-    # If the user is not logged in or an error occurs, redirect to the index page
     return redirect(url_for('index'))
 
 
@@ -2089,11 +2441,26 @@ def artisan():
         artisan_list = cursor.fetchall()
         conn.close()
 
+        conn, cursor = get_artisan_db_connection()
+        cursor.execute('SELECT COUNT(id) FROM artisan')
+        total_artisan_count = cursor.fetchone()[0]
+        conn.close()
+
+        conn, cursor = get_artisan_db_connection()
+        cursor.execute('SELECT COUNT(id) FROM artisan WHERE gender="Female"')
+        total_artisan_count_female = cursor.fetchone()[0]
+        conn.close()
+
+        conn, cursor = get_artisan_db_connection()
+        cursor.execute('SELECT COUNT(id) FROM artisan WHERE gender="Male"')
+        total_artisan_count_male = cursor.fetchone()[0]
+        conn.close()
+
         if user:
             username = user['username']
             role = user['role']
             image = user['image']
-            return render_template('/super_admin/artisans/artisans.html', username=username, role=role, artisan=artisan_list, image=image)  # noqa
+            return render_template('/super_admin/artisans/artisans.html', username=username, role=role, artisan=artisan_list, image=image, total_artisan_count=total_artisan_count, total_artisan_count_female=total_artisan_count_female, total_artisan_count_male=total_artisan_count_male)  # noqa
     return redirect(url_for('index'))
 
 
@@ -2222,6 +2589,9 @@ def add_artisan():
                 profession = request.form['profession']
                 years = request.form['years']
                 workshop = request.form['workshop']
+                association_name = request.form['association_name']
+                association_president = request.form['association_president']
+                association_number = request.form['association_number']
                 workshop_gps = request.form['workshop_gps']
                 registration = request.form['registration']
                 staff = request.form['staff']
@@ -2238,9 +2608,9 @@ def add_artisan():
                 id_image.save(id_image_path)
 
                 cursor.execute(
-                    "INSERT INTO artisan (name, gender, phone_number, birth, nationality, email, id_type, id_number, home_postal, home_gps, fathers_name, fathers_status, fathers_number, mothers_name, mothers_status, mothers_number, profession, year_profession, shop_location, shop_gps, date_registered, image, id_image, staff) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
+                    "INSERT INTO artisan (name, gender, phone_number, birth, nationality, email, id_type, id_number, home_postal, home_gps, fathers_name, fathers_status, fathers_number, mothers_name, mothers_status, mothers_number, profession, year_profession, shop_location, shop_gps, date_registered, image, id_image, staff, association_name, association_president, association_number) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
                     (name, gender, phone, birth, nationality, email, card, card_number, postal_address, gps_address, father, father_status, f_number,
-                     mother, mother_status, m_number, profession, years, workshop, workshop_gps, registration, image_filename, id_image_filename, staff)
+                     mother, mother_status, m_number, profession, years, workshop, workshop_gps, registration, image_filename, id_image_filename, staff, association_name, association_president, association_number)
                 )
 
                 conn.commit()
@@ -2297,6 +2667,9 @@ def update_artisan(id):
                 registration = request.form['registration']
                 staff = request.form['staff']
                 image = request.files['image']
+                association_name = request.form['association_name']
+                association_president = request.form['association_president']
+                association_number = request.form['association_number']
                 id_image = request.files['id_image']
 
                 if father_status == 'Dead':
@@ -2311,15 +2684,15 @@ def update_artisan(id):
                     image.save(image_path)
 
                     cursor.execute(
-                        'UPDATE artisan SET name=?, gender=?, phone_number=?, birth=?, nationality=?, email=?, id_type=?, id_number=?, home_postal=?, home_gps=?, fathers_name=?, fathers_status=?, fathers_number=?, mothers_name=?, mothers_status=?, mothers_number=?, profession=?, year_profession=?, shop_location=?, shop_gps=?, date_registered=?, image=?, staff=? WHERE id=?',
+                        'UPDATE artisan SET name=?, gender=?, phone_number=?, birth=?, nationality=?, email=?, id_type=?, id_number=?, home_postal=?, home_gps=?, fathers_name=?, fathers_status=?, fathers_number=?, mothers_name=?, mothers_status=?, mothers_number=?, profession=?, year_profession=?, shop_location=?, shop_gps=?, date_registered=?, image=?, staff=?, association_name=?, association_president=?, association_number=? WHERE id=?',
                         (name, gender, phone, birth, nationality, email, card, card_number, postal_address, gps_address, father, father_status,
-                         f_number, mother, mother_status, m_number, profession, years, workshop, workshop_gps, registration, image_filename, staff, id)
+                         f_number, mother, mother_status, m_number, profession, years, workshop, workshop_gps, registration, image_filename, staff, association_name, association_president, association_number, id)
                     )
                 else:
                     cursor.execute(
-                        'UPDATE artisan SET name=?, gender=?, phone_number=?, birth=?, nationality=?, email=?, id_type=?, id_number=?, home_postal=?, home_gps=?, fathers_name=?, fathers_status=?, fathers_number=?, mothers_name=?, mothers_status=?, mothers_number=?, profession=?, year_profession=?, shop_location=?, shop_gps=?, date_registered=?, staff=? WHERE id=?',
+                        'UPDATE artisan SET name=?, gender=?, phone_number=?, birth=?, nationality=?, email=?, id_type=?, id_number=?, home_postal=?, home_gps=?, fathers_name=?, fathers_status=?, fathers_number=?, mothers_name=?, mothers_status=?, mothers_number=?, profession=?, year_profession=?, shop_location=?, shop_gps=?, date_registered=?, staff=?, association_name=?, association_president=?, association_number=? WHERE id=?',
                         (name, gender, phone, birth, nationality, email, card, card_number, postal_address, gps_address, father, father_status,
-                         f_number, mother, mother_status, m_number, profession, years, workshop, workshop_gps, registration, staff, id)
+                         f_number, mother, mother_status, m_number, profession, years, workshop, workshop_gps, registration, staff, association_name, association_president, association_number, id)
                     )
 
                 if id_image:
@@ -2330,15 +2703,15 @@ def update_artisan(id):
                     id_image.save(id_image_path)
 
                     cursor.execute(
-                        'UPDATE artisan SET name=?, gender=?, phone_number=?, birth=?, nationality=?, email=?, id_type=?, id_number=?, home_postal=?, home_gps=?, fathers_name=?, fathers_status=?, fathers_number=?, mothers_name=?, mothers_status=?, mothers_number=?, profession=?, year_profession=?, shop_location=?, shop_gps=?, date_registered=?, id_image=?, staff=? WHERE id=?',
+                        'UPDATE artisan SET name=?, gender=?, phone_number=?, birth=?, nationality=?, email=?, id_type=?, id_number=?, home_postal=?, home_gps=?, fathers_name=?, fathers_status=?, fathers_number=?, mothers_name=?, mothers_status=?, mothers_number=?, profession=?, year_profession=?, shop_location=?, shop_gps=?, date_registered=?, id_image=?, staff=?, association_name=?, association_president=?, association_number=? WHERE id=?',
                         (name, gender, phone, birth, nationality, email, card, card_number, postal_address, gps_address, father, father_status,
-                         f_number, mother, mother_status, m_number, profession, years, workshop, workshop_gps, registration, id_image_filename, staff, id)
+                         f_number, mother, mother_status, m_number, profession, years, workshop, workshop_gps, registration, id_image_filename, staff, association_name, association_president, association_number, id)
                     )
                 else:
                     cursor.execute(
-                        'UPDATE artisan SET name=?, gender=?, phone_number=?, birth=?, nationality=?, email=?, id_type=?, id_number=?, home_postal=?, home_gps=?, fathers_name=?, fathers_status=?, fathers_number=?, mothers_name=?, mothers_status=?, mothers_number=?, profession=?, year_profession=?, shop_location=?, shop_gps=?, date_registered=?, staff=? WHERE id=?',
+                        'UPDATE artisan SET name=?, gender=?, phone_number=?, birth=?, nationality=?, email=?, id_type=?, id_number=?, home_postal=?, home_gps=?, fathers_name=?, fathers_status=?, fathers_number=?, mothers_name=?, mothers_status=?, mothers_number=?, profession=?, year_profession=?, shop_location=?, shop_gps=?, date_registered=?, staff=?, association_name=?, association_president=?, association_number=? WHERE id=?',
                         (name, gender, phone, birth, nationality, email, card, card_number, postal_address, gps_address, father, father_status,
-                         f_number, mother, mother_status, m_number, profession, years, workshop, workshop_gps, registration, staff, id)
+                         f_number, mother, mother_status, m_number, profession, years, workshop, workshop_gps, registration, staff, association_name, association_president, association_number, id)
                     )
 
                 conn.commit()
@@ -2373,11 +2746,31 @@ def cs():
         cs_list = cursor.fetchall()
         conn.close()
 
+        conn, cursor = get_cs_db_connection()
+        cursor.execute('SELECT COUNT(id) FROM cs')
+        total_cs = cursor.fetchone()[0]
+        conn.close()
+
+        conn, cursor = get_cs_db_connection()
+        cursor.execute('SELECT COUNT(id) FROM cs WHERE purpose="Enquiries"')
+        total_enquiries = cursor.fetchone()[0]
+        conn.close()
+
+        conn, cursor = get_cs_db_connection()
+        cursor.execute('SELECT COUNT(id) FROM cs WHERE purpose="Complaint"')
+        total_complaint = cursor.fetchone()[0]
+        conn.close()
+
+        conn, cursor = get_cs_db_connection()
+        cursor.execute('SELECT COUNT(id) FROM cs WHERE purpose="Visit"')
+        total_visit = cursor.fetchone()[0]
+        conn.close()
+
         if user:
             username = user['username']
             role = user['role']
             image = user['image']
-            return render_template('/super_admin/cs/cs.html', username=username, role=role, cs=cs_list, image=image)  # noqa
+            return render_template('/super_admin/cs/cs.html', username=username, role=role, cs=cs_list, image=image, total_cs=total_cs, total_complaint=total_complaint, total_enquiries=total_enquiries, total_visit=total_visit)  # noqa
     return redirect(url_for('index'))
 
 
@@ -2603,6 +2996,388 @@ def response_cs(id):
     return redirect(url_for('index'))
 
 
+def get_pdf_buffer(data):
+    pdf_buffer = BytesIO()
+
+    # Create a SimpleDocTemplate with buffer as the file
+    pdf = SimpleDocTemplate(pdf_buffer)
+
+    # Define styles
+    styles = getSampleStyleSheet()
+    header_style = styles['Heading1']
+    normal_style = styles['Normal']
+
+    # Create story (content for the PDF)
+    story = []
+
+    # Add a header
+    header_text = f"Client Service Record - ID: {data['id']}"
+    story.append(Paragraph(header_text, header_style))
+
+    # Add other information with styles
+    story.append(Paragraph(f"Name: {data['name']}", normal_style))
+    story.append(
+        Paragraph(f"Phone Number: {data['phone_number']}", normal_style))
+    story.append(Paragraph(f"Purpose: {data['purpose']}", normal_style))
+    story.append(
+        Paragraph(f"Unique Code: {data['unique_code']}", normal_style))
+    story.append(Paragraph(f"Date Time: {data['date_time']}", normal_style))
+
+    # Build the PDF
+    pdf.build(story)
+
+    # Reset the buffer for reading
+    pdf_buffer.seek(0)
+
+    return pdf_buffer
+
+
+@app.route('/export_response_pdf/<int:id>')
+@login_required(role='SUPER ADMIN')
+def export_response_pdf(id):
+    conn, cursor = get_cs_db_connection()
+    cursor.execute("SELECT * FROM cs WHERE id = ?", (id,))
+    cs_details = cursor.fetchone()
+
+    if cs_details:
+        # Get the styled PDF buffer
+        pdf_buffer = get_pdf_buffer(cs_details)
+
+        # Create a Flask response with the PDF content
+        response = Response(pdf_buffer.read())
+        response.headers['Content-Type'] = 'application/pdf'
+        response.headers['Content-Disposition'] = 'inline; filename=cs_data_export.pdf'
+
+        return response
+
+    # If cs_details is None, return an error response (adjust as needed)
+    return "Record not found", 404
+
+
+# Report Management Unit
+@app.route('/rmu')
+@login_required(role='SUPER ADMIN')
+def rmu():
+    if 'user_id' in session:
+        user_id = session['user_id']  # Get the user ID from the session
+        # Retrieve user information from the database
+        user = get_user_by_id(user_id)
+
+        conn, cursor = get_rmu_db_connection()
+        cursor.execute("SELECT * FROM rmu")
+        rmu_list = cursor.fetchall()
+        conn.close()
+
+        if user:
+            username = user['username']
+            role = user['role']
+            image = user['image']
+            return render_template('/super_admin/rmu/rmu.html', username=username, role=role, rmu=rmu_list, image=image)  # noqa
+    return redirect(url_for('index'))
+
+
+@app.route('/rmu_search', methods=['GET'])
+@login_required(role='SUPER ADMIN')
+def rmu_search():
+
+    if 'user_id' in session:
+        user_id = session['user_id']  # Get the user ID from the session
+        # Retrieve user information from the database
+        user = get_user_by_id(user_id)
+
+        search_query = request.args.get('search')
+        session['search_query'] = search_query
+
+        if not search_query:
+            return redirect(url_for('rmu'))
+
+        # Create the "stores" table if it doesn't exist
+
+        # Fetch data from the "stores" table that matches the search query
+        conn, cursor = get_rmu_db_connection()
+        cursor.execute("SELECT * FROM rmu WHERE subject LIKE ? OR category LIKE ? OR file_number LIKE ? OR received_by LIKE ?",
+                       ('%' + search_query + '%', '%' + search_query + '%', '%' + search_query + '%', '%' + search_query + '%'))
+
+        search_results = cursor.fetchall()
+        conn.close()
+
+        if user:
+            username = user['username']
+            role = user['role']
+            image = user['image']
+            return render_template('/super_admin/rmu/rmu.html', username=username, role=role, rmu=search_results, image=image)  # noqa
+    # If the user is not logged in or an error occurs, redirect to the index page# noqa
+    return redirect(url_for('index'))
+
+
+@app.route('/incomplete_search', methods=['GET'])
+@login_required(role='SUPER ADMIN')
+def incomplete_search():
+
+    if 'user_id' in session:
+        user_id = session['user_id']  # Get the user ID from the session
+        # Retrieve user information from the database
+        user = get_user_by_id(user_id)
+
+        search_query = request.args.get('search')
+        session['search_query'] = search_query
+
+        if not search_query:
+            return redirect(url_for('incomplete_rmu'))
+
+        # Create the "stores" table if it doesn't exist
+
+        # Fetch data from the "stores" table that matches the search query
+        conn, cursor = get_rmu_db_connection()
+        cursor.execute("SELECT * FROM rmu WHERE subject LIKE ? OR category LIKE ? OR file_number LIKE ? OR received_by LIKE ?",
+                       ('%' + search_query + '%', '%' + search_query + '%', '%' + search_query + '%', '%' + search_query + '%'))
+
+        search_results = cursor.fetchall()
+        conn.close()
+
+        if user:
+            username = user['username']
+            role = user['role']
+            image = user['image']
+            return render_template('/super_admin/rmu/incomplete.html', username=username, role=role, rmu=search_results, image=image)  # noqa
+    # If the user is not logged in or an error occurs, redirect to the index page# noqa
+    return redirect(url_for('index'))
+
+
+@app.route('/incomplete_rmu')
+@login_required(role='SUPER ADMIN')
+def incomplete_rmu():
+    if 'user_id' in session:
+        user_id = session['user_id']  # Get the user ID from the session
+        # Retrieve user information from the database
+        user = get_user_by_id(user_id)
+
+        conn, cursor = get_rmu_db_connection()
+        cursor.execute("SELECT * FROM rmu WHERE status='Incomplete'")
+        rmu_list = cursor.fetchall()
+        conn.close()
+
+        if user:
+            username = user['username']
+            role = user['role']
+            image = user['image']
+            return render_template('/super_admin/rmu/incomplete.html', username=username, role=role, rmu=rmu_list, image=image)  # noqa
+    return redirect(url_for('index'))
+
+
+@app.route('/delete_rmu/<int:id>')
+@login_required(role='SUPER ADMIN')
+def delete_rmu(id):
+    if 'user_id' in session:
+        user_id = session['user_id']
+        # Retrieve user information from thartisan
+        user = get_user_by_id(user_id)
+
+        # Delete the record with the specified store_id
+        conn, cursor = get_rmu_db_connection()
+        cursor.execute("DELETE FROM rmu WHERE id=?",
+                       (id,))
+
+        conn.commit()
+        conn.close()
+
+        if user:
+            username = user['username']
+            role = user['role']
+            image = user['image']
+            return redirect(url_for('rmu', username=username, role=role, image=image))
+    # If the user is not logged in or an error occurs, redirect to the index page
+    return redirect(url_for('index'))
+
+
+@app.route('/add_rmu', methods=['GET', 'POST'])
+@login_required(role='SUPER ADMIN')
+def add_rmu():
+    if 'user_id' in session:
+        user_id = session['user_id']  # Get the user ID from the session
+        # Retrieve user information from the database
+        user = get_user_by_id(user_id)
+        if user:
+            username = user['username']
+            role = user['role']
+            image = user['image']
+
+            if request.method == 'POST':
+
+                date_received = request.form["date_received"]
+                sent_by = request.form.get("sent_by", None)
+                letter_date = request.form["letter_date"]
+                reference_number = request.form.get("reference_number", None)
+                subject = request.form.get("subject", None)
+                receiving_office = request.form.get("receiving_office", None)
+                received_by = request.form.get("received_by", None)
+                institution_reference = request.form.get(
+                    "institution_reference", None)
+                institution_name = request.form.get(
+                    "institution_name", None)
+                category = request.form["category"]
+                file_number = "None"
+                status = "Incomplete"
+                receiving_officer = "None"
+                copy = request.files["file"]
+
+                copy_filename = secure_filename(
+                    copy.filename)
+                copy_path = os.path.join(
+                    "static/files", copy_filename)
+                copy.save(copy_path)
+
+                conn, cursor = get_rmu_db_connection()
+
+                if category == 'External (Outgoing)':
+                    cursor.execute(
+                        "INSERT INTO rmu (category, received_by, date_recieved, letter_date, subject, our_reference, copy) VALUES (?,?,?,?,?,?,?)",
+                        (category, sent_by, date_received, letter_date,
+                         subject, reference_number, copy_filename)
+                    )
+                    conn.commit()
+
+                elif category == 'Internal (Incoming)':
+                    cursor.execute(
+                        "INSERT INTO rmu (category, date_recieved, letter_date, instituition_name, instituition_reference, received_by, subject, receiving_office, copy, file_number, receiving_officer, status) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)", (
+                            category, date_received, letter_date, institution_name, institution_reference, received_by, subject, receiving_office, copy_filename, file_number, receiving_officer, status)
+                    )
+                    conn.commit()
+
+                flash("Letter Successfully Recorded")
+
+                return redirect(url_for('rmu'))
+
+            # Render the template with username and role
+            return render_template('super_admin/rmu/add.html', username=username, role=role, image=image)
+
+    # If the user is not logged in or an error occurs, redirect to the index page
+    return redirect(url_for('index'))
+
+
+@app.route('/add_rmu_filenumber/<int:id>', methods=['GET', 'POST'])
+@login_required(role='SUPER ADMIN')
+def add_rmu_filenumber(id):
+    if 'user_id' in session:
+        user_id = session['user_id']
+        user = get_user_by_id(user_id)
+
+        conn, cursor = get_rmu_db_connection()
+        cursor.execute("SELECT * FROM rmu WHERE id=?", (id,))
+        rmu_details = cursor.fetchone()
+        conn.close()
+
+        if request.method == "POST":
+            file_number = request.form['file_number']
+            status = "Complete"
+
+            conn, cursor = get_rmu_db_connection()
+            cursor.execute(
+                "UPDATE rmu SET file_number=?, status=? WHERE id=?", (file_number, status, id))
+            conn.commit()
+
+            flash("File Number Successfully Added")
+
+            return redirect(url_for('rmu'))
+
+        if user:
+            username = user['username']
+            role = user['role']
+            image = user['image']
+            return render_template('/super_admin/rmu/complete.html', username=username, role=role, rmu=rmu_details, image=image)
+
+    return redirect(url_for('index'))
+
+
+# Notification
+@app.route('/notification')
+@login_required(role='SUPER ADMIN')
+def notification():
+    if 'user_id' in session:
+        user_id = session['user_id']  # Get the user ID from the session
+        # Retrieve user information from the database
+        user = get_user_by_id(user_id)
+
+        conn, cursor = get_rmu_db_connection()
+        cursor.execute("SELECT * FROM rmu")
+        rmu_list = cursor.fetchall()
+        conn.close()
+
+        if user:
+            username = user['username']
+            role = user['role']
+            image = user['image']
+            return render_template('/super_admin/rmu/notification/notification.html', username=username, role=role, rmu=rmu_list, image=image)  # noqa
+    return redirect(url_for('index'))
+
+
+@app.route('/notification_search', methods=['GET'])
+@login_required(role='SUPER ADMIN')
+def notification_search():
+
+    if 'user_id' in session:
+        user_id = session['user_id']  # Get the user ID from the session
+        # Retrieve user information from the database
+        user = get_user_by_id(user_id)
+
+        search_query = request.args.get('search')
+        session['search_query'] = search_query
+
+        if not search_query:
+            return redirect(url_for('notification'))
+
+        # Create the "stores" table if it doesn't exist
+
+        # Fetch data from the "stores" table that matches the search query
+        conn, cursor = get_rmu_db_connection()
+        cursor.execute("SELECT * FROM rmu WHERE subject LIKE ? OR category LIKE ? OR file_number LIKE ? OR received_by LIKE ?",
+                       ('%' + search_query + '%', '%' + search_query + '%', '%' + search_query + '%', '%' + search_query + '%'))
+
+        search_results = cursor.fetchall()
+        conn.close()
+
+        if user:
+            username = user['username']
+            role = user['role']
+            image = user['image']
+            return render_template('/super_admin/rmu/notification/notification.html', username=username, role=role, rmu=search_results, image=image)  # noqa
+    # If the user is not logged in or an error occurs, redirect to the index page# noqa
+    return redirect(url_for('index'))
+
+
+@app.route('/add_rmu_officer/<int:id>', methods=['GET', 'POST'])
+@login_required(role='SUPER ADMIN')
+def add_rmu_officer(id):
+    if 'user_id' in session:
+        user_id = session['user_id']
+        user = get_user_by_id(user_id)
+
+        conn, cursor = get_rmu_db_connection()
+        cursor.execute("SELECT * FROM rmu WHERE id=?", (id,))
+        rmu_details = cursor.fetchone()
+        conn.close()
+
+        if request.method == "POST":
+            receiving_officer = request.form['receiving_officer']
+
+            conn, cursor = get_rmu_db_connection()
+            cursor.execute(
+                "UPDATE rmu SET receiving_officer=? WHERE id=?", (receiving_officer, id))
+            conn.commit()
+
+            flash("Name Successfully Added")
+
+            return redirect(url_for('notification'))
+
+        if user:
+            username = user['username']
+            role = user['role']
+            image = user['image']
+            return render_template('/super_admin/rmu/notification/update.html', username=username, role=role, rmu=rmu_details, image=image)
+
+    return redirect(url_for('index'))
+
+
 # Profile
 @app.route('/profile', methods=['GET', 'POST'])
 @login_required(role='SUPER ADMIN')
@@ -2705,15 +3480,29 @@ def admin_stores():
         user = get_user_by_id(user_id)
 
         conn, cursor = get_stores_db_connection()
-        cursor.execute("SELECT * FROM shop")
+        cursor.execute("SELECT * FROM shop ORDER BY id DESC LIMIT 10")
+        store_lists = cursor.fetchall()
+        conn.close()
+
+        conn, cursor = get_stores_db_connection()
+        cursor.execute('SELECT COUNT(id) FROM shop')
+        total_store_count = cursor.fetchone()[0]
+        conn.close()
+
+        conn, cursor = get_stores_db_connection()
+        cursor.execute("SELECT rent FROM shop")
         store_list = cursor.fetchall()
         conn.close()
+
+        total_rent = sum(store['rent'] for store in store_lists)
+        formatted_total_rent = '{:,}'.format(total_rent)
 
         if user:
             username = user['username']
             role = user['role']
             image = user['image']
-            return render_template('/admin/stores.html', username=username, role=role, stores=store_list, image=image)  # noqa
+            access = user['access']
+            return render_template('/admin/store/stores.html', username=username, role=role, stores=store_lists, image=image, total_rent=formatted_total_rent, store_list=store_list, total_store_count=total_store_count, access=access)  # noqa
     return redirect(url_for('index'))
 
 
@@ -2726,7 +3515,26 @@ def admin_search():
         # Retrieve user information from the database
         user = get_user_by_id(user_id)
 
+        conn, cursor = get_stores_db_connection()
+        cursor.execute('SELECT COUNT(id) FROM shop')
+        total_store_count = cursor.fetchone()[0]
+        conn.close()
+
+        conn, cursor = get_stores_db_connection()
+        cursor.execute("SELECT * FROM shop")
+        store_lists = cursor.fetchall()
+        conn.close()
+
+        conn, cursor = get_stores_db_connection()
+        cursor.execute("SELECT rent FROM shop")
+        store_list = cursor.fetchall()
+        conn.close()
+
+        total_rent = sum(store['rent'] for store in store_lists)
+        formatted_total_rent = '{:,}'.format(total_rent)
+
         search_query = request.args.get('search')
+        session['search_query'] = search_query
 
         if not search_query:
             return redirect(url_for('admin_stores'))
@@ -2744,7 +3552,8 @@ def admin_search():
             username = user['username']
             role = user['role']
             image = user['image']
-            return render_template('/admin/stores.html', username=username, role=role, stores=search_results, image=image)  # noqa
+            access = user['access']
+            return render_template('/admin/store/stores.html', username=username, role=role, stores=search_results, image=image, total_rent=formatted_total_rent, total_store_count=total_store_count, access=access)  # noqa
     # If the user is not logged in or an error occurs, redirect to the index page# noqa
     return redirect(url_for('index'))
 
@@ -2760,7 +3569,8 @@ def admin_store_reg():
             username = user['username']
             role = user['role']
             image = user['image']
-            return render_template('/admin/store-reg.html', username=username, role=role, image=image)  # noqa
+            access = user['access']
+            return render_template('/admin/store/store-reg.html', username=username, role=role, image=image, access=access)  # noqa
     # If the user is not logged in or an error occurs, redirect to the index page# noqa
     return redirect(url_for('index'))
 
@@ -2776,7 +3586,8 @@ def admin_add_stores_one():
             username = user['username']
             role = user['role']
             image = user['image']
-            return render_template('/admin/add-stores.html', username=username, role=role, image=image)  # noqa
+            access = user['access']
+            return render_template('/admin/store/add-stores.html', username=username, role=role, image=image, access=access)  # noqa
     # If the user is not logged in or an error occurs, redirect to the index page# noqa
     return redirect(url_for('index'))
 
@@ -2792,7 +3603,8 @@ def admin_add_stores_both():
             username = user['username']
             role = user['role']
             image = user['image']
-            return render_template('/admin/add-stores-both.html', username=username, role=role, image=image)  # noqa
+            access = user['access']
+            return render_template('/admin/store/add-stores-both.html', username=username, role=role, image=image, access=access)  # noqa
     # If the user is not logged in or an error occurs, redirect to the index page# noqa
     return redirect(url_for('index'))
 
@@ -2897,7 +3709,8 @@ def admin_add_stores():
             username = user['username']
             role = user['role']
             image = user['image']
-            return render_template('/admin/add-stores.html', username=username, role=role, image=image)
+            access = user['access']
+            return render_template('/admin/store/add-stores.html', username=username, role=role, image=image, access=access)
 
     # If the user is not logged in or an error occurs, redirect to the index page
     return redirect(url_for('index'))
@@ -2915,6 +3728,7 @@ def admin_more_stores(store_number):
             username = user['username']
             role = user['role']
             image = user['image']
+            access = user['access']
 
             # Fetch additional details for the selected store using the store_id
             conn, cursor = get_stores_db_connection()
@@ -2937,136 +3751,11 @@ def admin_more_stores(store_number):
 
             if store_details:
                 # Pass the store details to the template
-                return render_template('/admin/full-details.html', username=username, role=role, store=store_details, tenant=tenant_details, occupant=occupant_details, image=image)
+                return render_template('/admin/store/full-details.html', username=username, role=role, store=store_details, tenant=tenant_details, occupant=occupant_details, image=image, access=access)
             else:
                 # Flash an error message when store details are not found
                 flash("Store details not found", 'error')
                 return redirect(url_for('admin_stores'))
-
-    # If the user is not logged in or an error occurs, redirect to the index page
-    return redirect(url_for('index'))
-
-
-@app.route('/admin_update_stores/<string:store_number>', methods=['GET', 'POST'])
-@login_required(role='ADMIN')
-def admin_update_stores(store_number):
-    if 'user_id' in session:
-        user_id = session['user_id']  # Get the user ID from the session
-        # Retrieve user information from the database
-        user = get_user_by_id(user_id)
-
-        if user:
-            username = user['username']
-            role = user['role']
-            image = user['image']
-
-            conn, cursor = get_stores_db_connection()
-            cursor.execute(
-                "SELECT * FROM shop WHERE store_number = ?", (store_number,))
-            store = cursor.fetchone()
-
-            cursor.execute(
-                "SELECT * FROM tenant WHERE store_number = ?", (store_number,))
-            tenant = cursor.fetchone()
-
-            cursor.execute(
-                "SELECT * FROM occupant WHERE store_number = ?", (store_number,))
-            occupant = cursor.fetchone()
-
-            if request.method == 'POST':
-                store_number = request.form['store_number']
-                store_size = request.form['size']
-                rent = request.form['rent']
-                business = request.form['business']
-
-                store_number = request.form.get('store_number')
-
-                # Check if the store number already exist
-                cursor.execute(
-                    "SELECT store_number FROM shop WHERE store_number = ?", (store_number,))
-                existing_store = cursor.fetchone()
-                conn.close()
-
-                if existing_store and existing_store[0] != store_number:
-                    flash("Store number already exists in the database.", "error")
-                    return redirect(url_for('admin_stores'))
-
-                conn = get_db()
-                cursor = conn.cursor()
-
-                try:
-                    # Your database operations here
-                    with get_db() as conn:
-                        cursor = conn.cursor()
-                        # Get data from the form for the shop
-                        store_size = request.form.get('size')
-                        rent = request.form.get('rent')
-                        business = request.form.get('business')
-                        staff = request.form.get(
-                            'staff')  # Use get method here
-                        sector = request.form.get('sector')
-
-                        cursor.execute("UPDATE shop SET store_size=?, rent=?, business=?, sector=?, staff=? WHERE store_number=?",
-                                       (store_size, rent, business, sector, staff, store_number))
-
-                        t_fullname = request.form.get('t_fullname')
-                        t_telnumber = request.form.get('t_telnumber')
-                        t_gender = request.form.get('t_gender')
-                        t_birth = request.form.get('t_birth')
-                        t_house_number = request.form.get('t_house_number')
-                        t_id_number = request.form.get('t_id_number')
-
-                        t_image = request.files['t_image']
-
-                        if t_image:
-                            t_image_filename = secure_filename(
-                                t_image.filename)
-                            t_image_path = os.path.join(
-                                "static/images", t_image_filename)
-                            t_image.save(t_image_path)
-
-                            cursor.execute("UPDATE tenant SET name=?, number=?, birth=?, gender=?, house_number=?, id_number=?, image=? WHERE store_number=?",
-                                           (t_fullname, t_telnumber, t_birth, t_gender, t_house_number, t_id_number, t_image_filename, store_number))
-                        else:
-                            cursor.execute("UPDATE tenant SET name=?, number=?, birth=?, gender=?, house_number=?, id_number=? WHERE store_number=?",
-                                           (t_fullname, t_telnumber, t_birth, t_gender, t_house_number, t_id_number, store_number))
-
-                        if 'o_fullname' in request.form:
-                            o_fullname = request.form.get('o_fullname')
-                            o_telnumber = request.form.get('o_telnumber')
-                            o_gender = request.form.get('o_gender')
-                            o_birth = request.form.get('o_birth')
-                            o_house_number = request.form.get('o_house_number')
-                            o_id_number = request.form.get('o_id_number')
-
-                            o_image = request.files['o_image']
-
-                            if o_image:
-                                o_image_filename = secure_filename(
-                                    o_image.filename)
-                                o_image_path = os.path.join(
-                                    "static/images", o_image_filename)
-                                o_image.save(o_image_path)
-
-                                cursor.execute("UPDATE shop SET name=?, number=?, birth=?, gender=?, house_number=?, id_number=?, image=? WHERE store_number=?",
-                                               (o_fullname, o_telnumber, o_birth, o_gender, o_house_number, o_id_number, o_image_filename, store_number))
-                            else:
-                                cursor.execute("UPDATE occupant SET name=?, number=?, birth=?, gender=?, house_number=?, id_number=? WHERE store_number=?",
-                                               (o_fullname, o_telnumber, o_birth, o_gender, o_house_number, o_id_number, store_number))
-
-                        # Commit the changes to the database
-                        conn.commit()
-                        flash("Store Successfully Updated")
-                except sqlite3.Error as e:
-                    conn.rollback()  # Rollback changes if an error occurs
-                    flash(f"Database error: {e}", "error")
-
-                conn.close()  # Close the connection
-
-                # Redirect to the home page after submission
-                return redirect(url_for('admin_stores'))
-
-            return render_template('/admin/store/update.html', username=username, role=role, image=image, stores=store, tenant=tenant, occupant=occupant)
 
     # If the user is not logged in or an error occurs, redirect to the index page
     return redirect(url_for('index'))
@@ -3082,6 +3771,71 @@ def admin_asset():
         user = get_user_by_id(user_id)
 
         conn, cursor = get_asset_db_connection()
+        cursor.execute("SELECT COUNT(id) FROM asset")
+        asset_count = cursor.fetchone()[0]
+        conn.close()
+
+        conn, cursor = get_asset_db_connection()
+        cursor.execute(
+            "SELECT COUNT(id) FROM asset WHERE device_status='Active'")
+        asset_count_status = cursor.fetchone()[0]
+        conn.close()
+
+        conn, cursor = get_asset_db_connection()
+        cursor.execute(
+            "SELECT COUNT(id) FROM asset WHERE device_name='Desktop Computer'")
+        asset_count_desktop = cursor.fetchone()[0]
+        conn.close()
+
+        conn, cursor = get_asset_db_connection()
+        cursor.execute(
+            "SELECT COUNT(id) FROM asset WHERE device_name='Laptop'")
+        asset_count_laptop = cursor.fetchone()[0]
+        conn.close()
+
+        conn, cursor = get_asset_db_connection()
+        cursor.execute(
+            "SELECT COUNT(id) FROM asset WHERE device_name='Printer'")
+        asset_count_printer = cursor.fetchone()[0]
+        conn.close()
+
+        conn, cursor = get_asset_db_connection()
+        cursor.execute(
+            "SELECT COUNT(id) FROM asset WHERE device_name='Photocopier'")
+        asset_count_photocopier = cursor.fetchone()[0]
+        conn.close()
+
+        conn, cursor = get_asset_db_connection()
+        cursor.execute(
+            "SELECT COUNT(id) FROM asset WHERE device_name='Universal Power Supply (UPS)'")
+        asset_count_ups = cursor.fetchone()[0]
+        conn.close()
+
+        conn, cursor = get_asset_db_connection()
+        cursor.execute(
+            "SELECT COUNT(id) FROM asset WHERE device_name='Stabilizers'")
+        asset_count_stabilizer = cursor.fetchone()[0]
+        conn.close()
+
+        conn, cursor = get_asset_db_connection()
+        cursor.execute(
+            "SELECT COUNT(id) FROM asset WHERE device_name='Switch'")
+        asset_count_switch = cursor.fetchone()[0]
+        conn.close()
+
+        conn, cursor = get_asset_db_connection()
+        cursor.execute(
+            "SELECT COUNT(id) FROM asset WHERE device_name='Camera'")
+        asset_count_camera = cursor.fetchone()[0]
+        conn.close()
+
+        conn, cursor = get_asset_db_connection()
+        cursor.execute(
+            "SELECT COUNT(id) FROM asset WHERE device_name='Projector'")
+        asset_count_projector = cursor.fetchone()[0]
+        conn.close()
+
+        conn, cursor = get_asset_db_connection()
         cursor.execute("SELECT * FROM asset")
         asset_list = cursor.fetchall()
         conn.close()
@@ -3090,7 +3844,9 @@ def admin_asset():
             username = user['username']
             role = user['role']
             image = user['image']
-            return render_template('/admin/asset.html', username=username, role=role, image=image, asset=asset_list)  # noqa
+            access = user['access']
+
+            return render_template('/admin/asset/asset.html', username=username, role=role, image=image, asset=asset_list, asset_count=asset_count, asset_count_status=asset_count_status, asset_count_desktop=asset_count_desktop, asset_count_laptop=asset_count_laptop, asset_count_printer=asset_count_printer, asset_count_photocopier=asset_count_photocopier, asset_count_ups=asset_count_ups, asset_count_stabilizer=asset_count_stabilizer, asset_count_switch=asset_count_switch, asset_count_camera=asset_count_camera, asset_count_projector=asset_count_projector, access=access)  # noqa
     return redirect(url_for('index'))
 
 
@@ -3103,7 +3859,73 @@ def admin_asset_search():
         # Retrieve user information from the database
         user = get_user_by_id(user_id)
 
+        conn, cursor = get_asset_db_connection()
+        cursor.execute("SELECT COUNT(id) FROM asset")
+        asset_count = cursor.fetchone()[0]
+        conn.close()
+
+        conn, cursor = get_asset_db_connection()
+        cursor.execute(
+            "SELECT COUNT(id) FROM asset WHERE device_status='Active'")
+        asset_count_status = cursor.fetchone()[0]
+        conn.close()
+
+        conn, cursor = get_asset_db_connection()
+        cursor.execute(
+            "SELECT COUNT(id) FROM asset WHERE device_name='Desktop Computer'")
+        asset_count_desktop = cursor.fetchone()[0]
+        conn.close()
+
+        conn, cursor = get_asset_db_connection()
+        cursor.execute(
+            "SELECT COUNT(id) FROM asset WHERE device_name='Laptop'")
+        asset_count_laptop = cursor.fetchone()[0]
+        conn.close()
+
+        conn, cursor = get_asset_db_connection()
+        cursor.execute(
+            "SELECT COUNT(id) FROM asset WHERE device_name='Printer'")
+        asset_count_printer = cursor.fetchone()[0]
+        conn.close()
+
+        conn, cursor = get_asset_db_connection()
+        cursor.execute(
+            "SELECT COUNT(id) FROM asset WHERE device_name='Photocopier'")
+        asset_count_photocopier = cursor.fetchone()[0]
+        conn.close()
+
+        conn, cursor = get_asset_db_connection()
+        cursor.execute(
+            "SELECT COUNT(id) FROM asset WHERE device_name='Universal Power Supply (UPS)'")
+        asset_count_ups = cursor.fetchone()[0]
+        conn.close()
+
+        conn, cursor = get_asset_db_connection()
+        cursor.execute(
+            "SELECT COUNT(id) FROM asset WHERE device_name='Stabilizers'")
+        asset_count_stabilizer = cursor.fetchone()[0]
+        conn.close()
+
+        conn, cursor = get_asset_db_connection()
+        cursor.execute(
+            "SELECT COUNT(id) FROM asset WHERE device_name='Switch'")
+        asset_count_switch = cursor.fetchone()[0]
+        conn.close()
+
+        conn, cursor = get_asset_db_connection()
+        cursor.execute(
+            "SELECT COUNT(id) FROM asset WHERE device_name='Camera'")
+        asset_count_camera = cursor.fetchone()[0]
+        conn.close()
+
+        conn, cursor = get_asset_db_connection()
+        cursor.execute(
+            "SELECT COUNT(id) FROM asset WHERE device_name='Projector'")
+        asset_count_projector = cursor.fetchone()[0]
+        conn.close()
+
         search_query = request.args.get('search')
+        session['search_query'] = search_query
 
         if not search_query:
             return redirect(url_for('admin_asset'))
@@ -3112,7 +3934,7 @@ def admin_asset_search():
 
         # Fetch data from the "stores" table that matches the search query
         conn, cursor = get_asset_db_connection()
-        cursor.execute("SELECT * FROM asset WHERE department LIKE ? OR officer LIKE ? OR unit LIKE ? OR device_name LIKE ? OR division LIKE ?",
+        cursor.execute("SELECT * FROM asset WHERE department LIKE ? OR user LIKE ? OR unit LIKE ? OR device_name LIKE ? OR division LIKE ?",
                        ('%' + search_query + '%', '%' + search_query + '%', '%' + search_query + '%', '%' + search_query + '%', '%' + search_query + '%'))
 
         search_results = cursor.fetchall()
@@ -3122,7 +3944,9 @@ def admin_asset_search():
             username = user['username']
             role = user['role']
             image = user['image']
-            return render_template('/admin/asset.html', username=username, role=role, asset=search_results, image=image)  # noqa
+            access = user['access']
+
+            return render_template('/admin/asset/asset.html', username=username, role=role, image=image, asset=search_results, asset_count=asset_count, asset_count_status=asset_count_status, asset_count_desktop=asset_count_desktop, asset_count_laptop=asset_count_laptop, asset_count_printer=asset_count_printer, asset_count_photocopier=asset_count_photocopier, asset_count_ups=asset_count_ups, asset_count_stabilizer=asset_count_stabilizer, asset_count_switch=asset_count_switch, asset_count_camera=asset_count_camera, asset_count_projector=asset_count_projector, access=access)  # noqa
     # If the user is not logged in or an error occurs, redirect to the index page# noqa
     return redirect(url_for('index'))
 
@@ -3139,6 +3963,7 @@ def admin_more_asset(id):
             username = user['username']
             role = user['role']
             image = user['image']
+            access = user['access']
 
             # Fetch additional details for the selected store using the store_id
             conn, cursor = get_asset_db_connection()
@@ -3150,11 +3975,11 @@ def admin_more_asset(id):
 
             if asset_details:
                 # Pass the store details to the template
-                return render_template('/admin/add-assets-form/more.html', username=username, role=role, asset=asset_details, image=image)
+                return render_template('/admin/asset/more.html', username=username, role=role, asset=asset_details, image=image, access=access)
             else:
                 # Flash an error message when store details are not found
                 flash("Asset details not found", 'error')
-                return redirect(url_for('admin_asset'))
+                return redirect(url_for('asset'))
 
     # If the user is not logged in or an error occurs, redirect to the index page
     return redirect(url_for('index'))
@@ -3181,7 +4006,8 @@ def admin_add_asset():
             username = user['username']
             role = user['role']
             image = user['image']
-            return render_template('/admin/add-assets-form/assets-form.html', username=username, role=role, image=image, departments=departments, units=units)
+            access = user['access']
+            return render_template('/admin/asset/assets-form.html', username=username, role=role, image=image, departments=departments, units=units, access=access)
 
     return redirect(url_for('index'))
 
@@ -3197,6 +4023,7 @@ def admin_asset_add():
             username = user['username']
             role = user['role']
             image = user['image']
+            access = user['access']
 
             if request.method == 'POST':
                 # Get data from the form for the asset
@@ -3205,7 +4032,7 @@ def admin_asset_add():
                 unit = request.form['unit']
                 device = request.form['device']
                 date_purchased = request.form['date_purchased']
-                officer = request.form['officer']
+                using = request.form['using']
                 serial_number = request.form['serial_number']
                 embosenuit = request.form['embosenuit']
                 status = request.form['status']
@@ -3221,27 +4048,27 @@ def admin_asset_add():
                 if toner is not None and capacity is not None:
                     cursor.execute('''
                         INSERT INTO asset (department, unit, device_name, brand, serial_number, embosenuit_number,
-                        device_status, toner, device_capacity, division, date_purchased, officer, staff)
+                        device_status, toner, device_capacity, division, date_purchased, user, staff)
                         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-                    ''', (department, unit, device, brand, serial_number, embosenuit, status, toner, capacity, division, date_purchased, officer, staff))
+                    ''', (department, unit, device, brand, serial_number, embosenuit, status, toner, capacity, division, date_purchased, using, staff))
                 elif toner is not None:
                     cursor.execute('''
                         INSERT INTO asset (department, unit, device_name, brand, serial_number, embosenuit_number,
-                        device_status, toner, division, date_purchased, officer, staff)
+                        device_status, toner, division, date_purchased, user, staff)
                         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-                    ''', (department, unit, device, brand, serial_number, embosenuit, status, toner, division, date_purchased, officer, staff))
+                    ''', (department, unit, device, brand, serial_number, embosenuit, status, toner, division, date_purchased, using, staff))
                 elif capacity is not None:
                     cursor.execute('''
                         INSERT INTO asset (department, unit, device_name, brand, serial_number, embosenuit_number,
-                        device_status, device_capacity, division, date_purchased, officer, staff)
+                        device_status, device_capacity, division, date_purchased, user, staff)
                         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-                    ''', (department, unit, device, brand, serial_number, embosenuit, status, capacity, division, date_purchased, officer, staff))
+                    ''', (department, unit, device, brand, serial_number, embosenuit, status, capacity, division, date_purchased, using, staff))
                 else:
                     cursor.execute('''
                         INSERT INTO asset (department, unit, device_name, brand, serial_number, embosenuit_number,
-                        device_status, division, date_purchased, officer, staff)
+                        device_status, division, date_purchased, user, staff)
                         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-                    ''', (department, unit, device, brand, serial_number, embosenuit, status, division, date_purchased, officer, staff))
+                    ''', (department, unit, device, brand, serial_number, embosenuit, status, division, date_purchased, using, staff))
                 conn.commit()
                 conn.close()
 
@@ -3250,15 +4077,102 @@ def admin_asset_add():
                 return redirect('admin_asset')
 
             # Render the template with username and role
-            return render_template('admin/add-assets-form/assets-form.html', username=username, role=role, image=image)
+            return render_template('admin/asset/assets-form.html', username=username, role=role, image=image, access=access)
 
     # If the user is not logged in or an error occurs, redirect to the index page
     return redirect(url_for('index'))
 
 
-@app.route('/admin_update_asset/<int:id>', methods=['GET', 'POST'])
+# Stores Management Systems
+@app.route('/admin_sms')
 @login_required(role='ADMIN')
-def admin_update_asset(id):
+def admin_sms():
+    if 'user_id' in session:
+        user_id = session['user_id']  # Get the user ID from the session
+        # Retrieve user information from the database
+        user = get_user_by_id(user_id)
+
+        conn, cursor = get_sms_db_connection()
+        cursor.execute("SELECT COUNT(id) FROM stores_received")
+        item_count = cursor.fetchone()[0]
+        conn.close()
+
+        conn, cursor = get_sms_db_connection()
+        cursor.execute("SELECT COUNT(id) FROM stores_dispatch")
+        dispatch_count = cursor.fetchone()[0]
+        conn.close()
+
+        conn, cursor = get_sms_db_connection()
+        cursor.execute("SELECT * FROM stores_received")
+        sms_list_receiver = cursor.fetchall()
+        conn.close()
+
+        conn, cursor = get_sms_db_connection()
+        cursor.execute("SELECT * FROM stores_dispatch")
+        sms_list_dispatch = cursor.fetchall()
+        conn.close()
+
+        if user:
+            username = user['username']
+            role = user['role']
+            image = user['image']
+            access = user['access']
+
+            return render_template('/admin/sms/sms.html', username=username, role=role, image=image, sms_list_receiver=sms_list_receiver, item_count=item_count, dispatch_count=dispatch_count, sms_list_dispatch=sms_list_dispatch, access=access)  # noqa
+    return redirect(url_for('index'))
+
+
+@app.route('/admin_sms_search', methods=['GET'])
+@login_required(role='ADMIN')
+def admin_sms_search():
+
+    if 'user_id' in session:
+        user_id = session['user_id']  # Get the user ID from the session
+        # Retrieve user information from the database
+        user = get_user_by_id(user_id)
+
+        search_query = request.args.get('search')
+        session['search_query'] = search_query
+
+        conn, cursor = get_sms_db_connection()
+        cursor.execute("SELECT COUNT(id) FROM stores_received")
+        item_count = cursor.fetchone()[0]
+        conn.close()
+
+        conn, cursor = get_sms_db_connection()
+        cursor.execute("SELECT COUNT(id) FROM stores_dispatch")
+        dispatch_count = cursor.fetchone()[0]
+        conn.close()
+
+        if not search_query:
+            return redirect(url_for('admin_sms'))
+
+        # Fetch data from the "stores" table that matches the search query
+        conn, cursor = get_sms_db_connection()
+        cursor.execute("SELECT * FROM stores_received WHERE item LIKE ? OR serial_number LIKE ?",
+                       ('%' + search_query + '%', '%' + search_query + '%'))
+        search_results_receiver = cursor.fetchall()
+
+        cursor.execute("SELECT * FROM stores_dispatch WHERE item LIKE ? OR name_receiver LIKE ?",
+                       ('%' + search_query + '%', '%' + search_query + '%'))
+
+        search_results_dispatch = cursor.fetchall()
+        conn.close()
+
+        if user:
+            username = user['username']
+            role = user['role']
+            image = user['image']
+            access = user['access']
+
+            return render_template('/admin/sms/sms.html', username=username, role=role, sms_receiver=search_results_receiver, sms_dispatch=search_results_dispatch, item_count=item_count, dispatch_count=dispatch_count,  image=image, access=access)  # noqa
+    # If the user is not logged in or an error occurs, redirect to the index page# noqa
+    return redirect(url_for('index'))
+
+
+@app.route('/admin_more_sms/<int:id>')
+@login_required(role='ADMIN')
+def admin_more_sms(id):
     if 'user_id' in session:
         user_id = session['user_id']
         # Retrieve user information from the database
@@ -3268,63 +4182,667 @@ def admin_update_asset(id):
             username = user['username']
             role = user['role']
             image = user['image']
+            access = user['access']
 
-            # Fetch additional details for the selected department using the department_name
-            conn, cursor = get_asset_db_connection()
+            # Fetch additional details for the selected store using the store_id
+            conn, cursor = get_sms_db_connection()
+
             cursor.execute(
-                "SELECT * FROM asset WHERE id = ?", (id,))
-            asset_details = cursor.fetchone()
+                "SELECT * FROM stores_received WHERE id = ?", (id,))
+            sms_details = cursor.fetchone()
+            conn.close()
 
-            conn, cursor = get_department_db_connection()
-            cursor.execute('SELECT * FROM department')
-            departments = [row['department_name']
-                           for row in cursor.fetchall()]
+            if sms_details:
+                # Pass the store details to the template
+                return render_template('/admin/sms/more.html', username=username, role=role, sms=sms_details, image=image, access=access)
+            else:
+                # Flash an error message when store details are not found
+                flash("Asset details not found", 'error')
+                return redirect(url_for('admin_sms'))
 
-            cursor.execute('SELECT * FROM unit')
-            units = [row['unit'] for row in cursor.fetchall()]
+    # If the user is not logged in or an error occurs, redirect to the index page
+    return redirect(url_for('index'))
+
+
+@app.route('/admin_more_sms_dispatch/<int:id>')
+@login_required(role='ADMIN')
+def admin_more_sms_dispatch(id):
+    if 'user_id' in session:
+        user_id = session['user_id']
+        # Retrieve user information from the database
+        user = get_user_by_id(user_id)
+
+        if user:
+            username = user['username']
+            role = user['role']
+            image = user['image']
+            access = user['access']
+
+            # Fetch additional details for the selected store using the store_id
+            conn, cursor = get_sms_db_connection()
+
+            cursor.execute(
+                "SELECT * FROM stores_dispatch WHERE id = ?", (id,))
+            sms_details_dispatch = cursor.fetchone()
+            conn.close()
+
+            if sms_details_dispatch:
+                # Pass the store details to the template
+                return render_template('/admin/sms/more-dispatch.html', username=username, role=role, sms=sms_details_dispatch, image=image, access=access)
+            else:
+                # Flash an error message when store details are not found
+                flash("Asset details not found", 'error')
+                return redirect(url_for('admin_sms'))
+
+    # If the user is not logged in or an error occurs, redirect to the index page
+    return redirect(url_for('index'))
+
+
+@app.route('/admin_sms_add', methods=['GET', 'POST'])
+@login_required(role='ADMIN')
+def admin_sms_add():
+    if 'user_id' in session:
+        user_id = session['user_id']  # Get the user ID from the session
+        # Retrieve user information from the database
+        user = get_user_by_id(user_id)
+        if user:
+            username = user['username']
+            role = user['role']
+            image = user['image']
+            access = user['access']
 
             if request.method == 'POST':
-                # Get data from the form for the asset
+                item = request.form['item'].upper()
+                serial_number = request.form['serial_number'].upper()
+                quantity_requested = request.form['requested_quantity']
+                quantity_received = request.form['received_quantity']
+                date_recieved = request.form['date_recieved']
+                differnce = request.form['difference']
+                supplier = request.form['supplier']
                 department = request.form['department']
-                division = request.form['division'].upper()
-                unit = request.form['unit']
-                device = request.form['device']
-                date_purchased = request.form['date_purchased']
-                officer = request.form['officer']
-                serial_number = request.form['serial_number']
-                embosenuit = request.form['embosenuit']
-                status = request.form['status']
-                brand = request.form['brand']
-                # Use get() with a default value
-                toner = request.form.get('toner_type', None)
-                # Use get() with a default value
-                capacity = request.form.get('device_capacity', None)
+                staff = request.form['staff']
 
-                # Update the asset in the 'department' table
-                conn, cursor = get_asset_db_connection()
-                cursor.execute(
-                    'UPDATE asset SET department=?, unit=?, division=?, device_name=?, date_purchased=?, serial_number=?, embosenuit_number=?, brand=?, toner=?, device_capacity=?, device_status=?, officer=? WHERE id=?', (department, unit, division, device, date_purchased, serial_number, embosenuit, brand, toner, capacity, status, officer, id))
+                conn, cursor = get_sms_db_connection()
+
+                cursor.execute('''
+                    INSERT INTO stores_received (item, serial_number, quantity_requested, quantity_received, date_recieved, staff, difference, supplier_name, requested_dept)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                ''', (item, serial_number, quantity_requested, quantity_received, date_recieved, staff, differnce, supplier, department))
 
                 conn.commit()
+                conn.close()
 
-                flash("Asset Successfully Updated")
+                flash("Item Successfully Added")
 
-                return redirect(url_for('admin_asset'))
+                return redirect('admin_sms')
 
+            # Render the template with username and role
+            return render_template('admin/sms/add.html', username=username, role=role, image=image, access=access)
+
+    # If the user is not logged in or an error occurs, redirect to the index page
+    return redirect(url_for('index'))
+
+
+@app.route('/admin_sms_dispatch', methods=['GET', 'POST'])
+@login_required(role='ADMIN')
+def admin_sms_dispatch():
+    if 'user_id' in session:
+        user_id = session['user_id']  # Get the user ID from the session
+        # Retrieve user information from the database
+        user = get_user_by_id(user_id)
+        if user:
+            username = user['username']
+            role = user['role']
+            image = user['image']
+            access = user['access']
+
+            if request.method == 'POST':
+                item = request.form['item'].upper()
+                quantity = request.form['quantity']
+                dispatch = request.form['dispatch']
+                date_received = request.form['date_recieved']
+                officer = request.form.get('officer')
+                person = request.form.get('person', None)
+                department = request.form.get('department', None)
+                desc = request.form.get('desc', None)
+                number = request.form.get('number')
+                staff = request.form['staff']
+
+                conn, cursor = get_sms_db_connection()
+
+                cursor.execute('''
+                    INSERT INTO stores_dispatch (item, type, quantity, date_recieved, staff, department, officer_receiver, name_receiver, description, phone_number)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                ''', (item, dispatch, quantity, date_received, staff, department, officer, person, desc, number))
+
+                conn.commit()
+                conn.close()
+
+                flash("Item Successfully Dispatched")
+
+                return redirect('admin_sms')
+
+            # Render the template with username and role
+            return render_template('admin/sms/dispatched.html', username=username, role=role, image=image, access=access)
+
+    # If the user is not logged in or an error occurs, redirect to the index page
+    return redirect(url_for('index'))
+
+
+# Artisans
+@app.route('/admin_artisan')
+@login_required(role='ADMIN')
+def admin_artisan():
+    if 'user_id' in session:
+        user_id = session['user_id']  # Get the user ID from the session
+        # Retrieve user information from the database
+        user = get_user_by_id(user_id)
+
+        conn, cursor = get_artisan_db_connection()
+        cursor.execute("SELECT * FROM artisan")
+        artisan_list = cursor.fetchall()
+        conn.close()
+
+        conn, cursor = get_artisan_db_connection()
+        cursor.execute('SELECT COUNT(id) FROM artisan')
+        total_artisan_count = cursor.fetchone()[0]
+        conn.close()
+
+        conn, cursor = get_artisan_db_connection()
+        cursor.execute('SELECT COUNT(id) FROM artisan WHERE gender="Female"')
+        total_artisan_count_female = cursor.fetchone()[0]
+        conn.close()
+
+        conn, cursor = get_artisan_db_connection()
+        cursor.execute('SELECT COUNT(id) FROM artisan WHERE gender="Male"')
+        total_artisan_count_male = cursor.fetchone()[0]
+        conn.close()
+
+        if user:
+            username = user['username']
+            role = user['role']
+            image = user['image']
+            access = user['access']
+            return render_template('/admin/artisans/artisans.html', username=username, role=role, artisan=artisan_list, image=image, total_artisan_count=total_artisan_count, total_artisan_count_female=total_artisan_count_female, total_artisan_count_male=total_artisan_count_male, access=access)  # noqa
+    return redirect(url_for('index'))
+
+
+@app.route('/admin_artisan_search', methods=['GET'])
+@login_required(role='ADMIN')
+def admin_artisan_search():
+
+    if 'user_id' in session:
+        user_id = session['user_id']  # Get the user ID from the session
+        # Retrieve user information from the database
+        user = get_user_by_id(user_id)
+
+        conn, cursor = get_artisan_db_connection()
+        cursor.execute('SELECT COUNT(id) FROM artisan')
+        total_artisan_count = cursor.fetchone()[0]
+        conn.close()
+
+        conn, cursor = get_artisan_db_connection()
+        cursor.execute('SELECT COUNT(id) FROM artisan WHERE gender="Female"')
+        total_artisan_count_female = cursor.fetchone()[0]
+        conn.close()
+
+        conn, cursor = get_artisan_db_connection()
+        cursor.execute('SELECT COUNT(id) FROM artisan WHERE gender="Male"')
+        total_artisan_count_male = cursor.fetchone()[0]
+        conn.close()
+
+        search_query = request.args.get('search')
+        session['search_query'] = search_query
+
+        if not search_query:
+            return redirect(url_for('admin_artisan'))
+
+        # Create the "stores" table if it doesn't exist
+
+        # Fetch data from the "stores" table that matches the search query
+        conn, cursor = get_artisan_db_connection()
+        cursor.execute("SELECT * FROM artisan WHERE name LIKE ? OR profession LIKE ? OR date_registered LIKE ? OR nationality LIKE ? OR id_number LIKE ?",
+                       ('%' + search_query + '%', '%' + search_query + '%', '%' + search_query + '%', '%' + search_query + '%', '%' + search_query + '%'))
+
+        search_results = cursor.fetchall()
+        conn.close()
+
+        if user:
+            username = user['username']
+            role = user['role']
+            image = user['image']
+            access = user['access']
+            return render_template('/admin/artisans/artisans.html', username=username, role=role, artisan=search_results, image=image, access=access, total_artisan_count=total_artisan_count, total_artisan_count_female=total_artisan_count_female, total_artisan_count_male=total_artisan_count_male,)  # noqa
+    # If the user is not logged in or an error occurs, redirect to the index page# noqa
+    return redirect(url_for('index'))
+
+
+@app.route('/admin_more_artisan/<int:id>')
+@login_required(role='ADMIN')
+def admin_more_artisan(id):
+    if 'user_id' in session:
+        user_id = session['user_id']
+        # Retrieve user information from the database
+        user = get_user_by_id(user_id)
+
+        if user:
+            username = user['username']
+            role = user['role']
+            image = user['image']
+            access = user['access']
+
+            # Fetch additional details for the selected store using the store_id
+            conn, cursor = get_artisan_db_connection()
+            cursor.execute(
+                "SELECT * FROM artisan WHERE id = ?", (id,))
+            artisan_details = cursor.fetchone()
             conn.close()
-            if asset_details:
-                # Pass the department details to the template
-                return render_template('/admin/add-assets-form/update.html', username=username, role=role, asset=asset_details, departments=departments, units=units, image=image)
+
+            if artisan_details:
+                # Pass the store details to the template
+                return render_template('/admin/artisans/more.html', username=username, role=role, artisan=artisan_details, image=image, access=access)
             else:
-                # Flash an error message when department details are not found
-                flash("Asset details not found", 'error')
-                return redirect(url_for('admin_asset'))
+                # Flash an error message when store details are not found
+                flash("Artisan details not found", 'error')
+                return redirect(url_for('admin_artisan'))
+
+    # If the user is not logged in or an error occurs, redirect to the index page
+    return redirect(url_for('index'))
+
+
+@app.route('/admin_add_artisan', methods=['GET', 'POST'])
+@login_required(role='ADMIN')
+def admin_add_artisan():
+    if 'user_id' in session:
+        user_id = session['user_id']
+        user = get_user_by_id(user_id)
+
+        if user:
+            username = user['username']
+            role = user['role']
+            image = user['image']
+            access = user['access']
+
+            if request.method == 'POST':
+                conn, cursor = get_artisan_db_connection()
+
+                name = request.form['name']
+                gender = request.form['gender']
+                phone = request.form['number']
+                birth = request.form['birth']
+                nationality = request.form['nationality']
+                email = request.form['email']
+                card = request.form['card']
+                card_number = request.form['card_number']
+                postal_address = request.form['postal_address']
+                gps_address = request.form['gps_address']
+                father = request.form['father']
+                father_status = request.form['father_status']
+                f_number = request.form.get('f_number', None)
+                mother = request.form['mother']
+                mother_status = request.form['mother_status']
+                m_number = request.form.get('m_number', None)
+                profession = request.form['profession']
+                years = request.form['years']
+                workshop = request.form['workshop']
+                association_name = request.form['association_name']
+                association_president = request.form['association_president']
+                association_number = request.form['association_number']
+                workshop_gps = request.form['workshop_gps']
+                registration = request.form['registration']
+                staff = request.form['staff']
+
+                image = request.files['image']
+                image_filename = secure_filename(image.filename)
+                image_path = os.path.join("static/images", image_filename)
+                image.save(image_path)
+
+                id_image = request.files['id_image']
+                id_image_filename = secure_filename(id_image.filename)
+                id_image_path = os.path.join(
+                    "static/images", id_image_filename)
+                id_image.save(id_image_path)
+
+                cursor.execute(
+                    "INSERT INTO artisan (name, gender, phone_number, birth, nationality, email, id_type, id_number, home_postal, home_gps, fathers_name, fathers_status, fathers_number, mothers_name, mothers_status, mothers_number, profession, year_profession, shop_location, shop_gps, date_registered, image, id_image, staff, association_name, association_president, association_number) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
+                    (name, gender, phone, birth, nationality, email, card, card_number, postal_address, gps_address, father, father_status, f_number,
+                     mother, mother_status, m_number, profession, years, workshop, workshop_gps, registration, image_filename, id_image_filename, staff, association_name, association_president, association_number)
+                )
+
+                conn.commit()
+                conn.close()
+
+                flash("Artisan Successfully Added")
+                return redirect(url_for('admin_artisan'))
+
+            return render_template('/admin/artisans/add.html', username=username, role=role, image=image, access=access)
 
     return redirect(url_for('index'))
 
+
+# Client Srvice Unit
+@app.route('/admin_cs')
+@login_required(role='ADMIN')
+def admin_cs():
+    if 'user_id' in session:
+        user_id = session['user_id']  # Get the user ID from the session
+        # Retrieve user information from the database
+        user = get_user_by_id(user_id)
+
+        conn, cursor = get_cs_db_connection()
+        cursor.execute("SELECT * FROM cs")
+        cs_list = cursor.fetchall()
+        conn.close()
+
+        conn, cursor = get_cs_db_connection()
+        cursor.execute('SELECT COUNT(id) FROM cs')
+        total_cs = cursor.fetchone()[0]
+        conn.close()
+
+        conn, cursor = get_cs_db_connection()
+        cursor.execute('SELECT COUNT(id) FROM cs WHERE purpose="Enquiries"')
+        total_enquiries = cursor.fetchone()[0]
+        conn.close()
+
+        conn, cursor = get_cs_db_connection()
+        cursor.execute('SELECT COUNT(id) FROM cs WHERE purpose="Complaint"')
+        total_complaint = cursor.fetchone()[0]
+        conn.close()
+
+        conn, cursor = get_cs_db_connection()
+        cursor.execute('SELECT COUNT(id) FROM cs WHERE purpose="Visit"')
+        total_visit = cursor.fetchone()[0]
+        conn.close()
+
+        if user:
+            username = user['username']
+            role = user['role']
+            image = user['image']
+            access = user['access']
+            return render_template('/admin/cs/cs.html', username=username, role=role, cs=cs_list, image=image, total_cs=total_cs, total_complaint=total_complaint, total_enquiries=total_enquiries, total_visit=total_visit, access=access)  # noqa
+    return redirect(url_for('index'))
+
+
+@app.route('/admin_cs_search', methods=['GET'])
+@login_required(role='ADMIN')
+def admin_cs_search():
+
+    if 'user_id' in session:
+        user_id = session['user_id']  # Get the user ID from the session
+        # Retrieve user information from the database
+        user = get_user_by_id(user_id)
+
+        conn, cursor = get_cs_db_connection()
+        cursor.execute('SELECT COUNT(id) FROM cs')
+        total_cs = cursor.fetchone()[0]
+        conn.close()
+
+        conn, cursor = get_cs_db_connection()
+        cursor.execute('SELECT COUNT(id) FROM cs WHERE purpose="Enquiries"')
+        total_enquiries = cursor.fetchone()[0]
+        conn.close()
+
+        conn, cursor = get_cs_db_connection()
+        cursor.execute('SELECT COUNT(id) FROM cs WHERE purpose="Complaint"')
+        total_complaint = cursor.fetchone()[0]
+        conn.close()
+
+        conn, cursor = get_cs_db_connection()
+        cursor.execute('SELECT COUNT(id) FROM cs WHERE purpose="Visit"')
+        total_visit = cursor.fetchone()[0]
+        conn.close()
+
+        search_query = request.args.get('search')
+        session['search_query'] = search_query
+
+        if not search_query:
+            return redirect(url_for('admin_cs'))
+
+        # Create the "stores" table if it doesn't exist
+
+        # Fetch data from the "stores" table that matches the search query
+        conn, cursor = get_cs_db_connection()
+        cursor.execute("SELECT * FROM cs WHERE name LIKE ? OR purpose LIKE ? OR unique_code LIKE ? OR phone_number LIKE ?",
+                       ('%' + search_query + '%', '%' + search_query + '%', '%' + search_query + '%', '%' + search_query + '%'))
+
+        search_results = cursor.fetchall()
+        conn.close()
+
+        if user:
+            username = user['username']
+            role = user['role']
+            image = user['image']
+            access = user['access']
+            return render_template('/admin/cs/cs.html', username=username, role=role, cs=search_results, image=image, access=access, total_cs=total_cs, total_complaint=total_complaint, total_enquiries=total_enquiries, total_visit=total_visit)  # noqa
+    # If the user is not logged in or an error occurs, redirect to the index page# noqa
+    return redirect(url_for('index'))
+
+
+@app.route('/admin_more_cs/<int:id>')
+@login_required(role='ADMIN')
+def admin_more_cs(id):
+    if 'user_id' in session:
+        user_id = session['user_id']
+        # Retrieve user information from the database
+        user = get_user_by_id(user_id)
+
+        if user:
+            username = user['username']
+            role = user['role']
+            image = user['image']
+            access = user['access']
+
+            # Fetch additional details for the selected store using the store_id
+            conn, cursor = get_cs_db_connection()
+            cursor.execute(
+                "SELECT * FROM cs WHERE id = ?", (id,))
+            cs_details = cursor.fetchone()
+            conn.close()
+
+            if cs_details:
+                # Pass the store details to the template
+                return render_template('/admin/cs/more.html', username=username, role=role, cs=cs_details, image=image, access=access)
+            else:
+                # Flash an error message when store details are not found
+                flash("Details not found", 'error')
+                return redirect(url_for('admin_cs'))
+
+    # If the user is not logged in or an error occurs, redirect to the index page
+    return redirect(url_for('index'))
+
+
+@app.route('/admin_add_cs', methods=['GET', 'POST'])
+@login_required(role='ADMIN')
+def admin_add_cs():
+    if 'user_id' in session:
+        user_id = session['user_id']
+        user = get_user_by_id(user_id)
+
+        if user:
+            username = user['username']
+            role = user['role']
+            image = user['image']
+            access = user['access']
+
+            if request.method == 'POST':
+
+                first_name = request.form['first_name']
+                last_name = request.form['last_name']
+                gender = request.form['gender']
+                phone = request.form['number']
+                address = request.form['address']
+                age_bracket = request.form['age_bracket']
+                disability_status = request.form['disability_status']
+                complainant = request.form.get('complainant', None)
+                complaint_textarea = request.form.get(
+                    'complaint_textarea', None)
+                enquiries_textarea = request.form.get(
+                    'enquiries_textarea', None)
+                tag_number = request.form.get('tag_number', None)
+                office = request.form.get('office', None)
+                receipient_name = request.form.get('receipient_name', None)
+                purpose_visit = request.form.get('purpose_visit', None)
+                purpose = request.form['purpose']
+
+                phone_suffix = phone[-4:] if len(phone) >= 4 else phone
+                current_datetime = datetime.now().strftime("%Y-%m-%d / %H%M:%S")
+                current_time = datetime.now().strftime("%Y%m%d")
+
+                unique_code = f"{last_name}{phone_suffix}{current_time}"
+
+                conn, cursor = get_cs_db_connection()
+
+                if purpose == 'Complaint' and complaint_textarea is not None:
+                    cursor.execute(
+                        "INSERT INTO cs (name, gender, phone_number, address, age_bracket, disability_status, complaint_to, complaint_content, purpose, unique_code, date_time) VALUES (?,?,?,?,?,?,?,?,?,?,?)",
+                        (f"{first_name} {last_name}", gender, phone, address, age_bracket, disability_status, complainant,
+                         complaint_textarea, purpose, unique_code, current_datetime)
+                    )
+                    flash("Complaint Successfully Sent")
+
+                elif purpose == 'Enquiries' and enquiries_textarea is not None:
+                    cursor.execute(
+                        "INSERT INTO cs (name, gender, phone_number, address, age_bracket, disability_status, enquiries_content, purpose, unique_code, date_time) VALUES (?,?,?,?,?,?,?,?,?,?)",
+                        (f"{first_name} {last_name}", gender, phone, address, age_bracket,
+                         disability_status, enquiries_textarea, purpose, unique_code, current_datetime)
+                    )
+                    flash("Enquiries Successfully Sent")
+                elif purpose == 'Visit':
+                    # Ensure other necessary fields are provided before executing the query
+                    cursor.execute(
+                        "INSERT INTO cs (name, gender, phone_number, address, age_bracket, disability_status, tag_number, office, receipient_name, purpose_visit, purpose, unique_code, date_time) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)",
+                        (f"{first_name} {last_name}", gender, phone, address, age_bracket, disability_status,
+                         tag_number, office, receipient_name, purpose_visit, purpose, unique_code, current_datetime)
+                    )
+                    flash("Successfully Added")
+                else:
+                    flash("Invalid form data for the selected purpose")
+
+                conn.commit()
+                conn.close()
+
+                return redirect(url_for('admin_cs'))
+
+            return render_template('/admin/cs/add.html', username=username, role=role, image=image, access=access)
+
+    return redirect(url_for('index'))
+
+
+@app.route('/admin_response_cs/<int:id>', methods=['GET', 'POST'])
+@login_required(role='ADMIN')
+def admin_response_cs(id):
+    if 'user_id' in session:
+        user_id = session['user_id']
+        # Retrieve user information from the database
+        user = get_user_by_id(user_id)
+
+        if user:
+            username = user['username']
+            role = user['role']
+            image = user['image']
+            access = user['access']
+
+            # Fetch additional details for the selected store using the store_id
+            conn, cursor = get_cs_db_connection()
+            cursor.execute(
+                "SELECT * FROM cs WHERE id = ?", (id,))
+            cs_details = cursor.fetchone()
+            conn.close()
+
+            if request.method == 'POST':
+                response_textarea = request.form.get('response_textarea')
+                purpose = request.form.get('purpose')
+
+                # Check if 'purpose' is present in the form data
+                if purpose is None:
+                    flash("Purpose is required", 'error')
+                    return redirect(url_for('admin_response_cs', id=id))
+
+                conn, cursor = get_cs_db_connection()
+                if purpose == "Complaint":
+                    cursor.execute(
+                        "UPDATE cs SET complaint_response=? WHERE id=?", (response_textarea, id))
+                elif purpose == "Enquiries":
+                    cursor.execute(
+                        "UPDATE cs SET enquiries_response=? WHERE id=?", (response_textarea, id))
+                conn.commit()
+                conn.close()
+
+                redirect(url_for('admin_cs'))
+
+                flash("Response Sent")
+
+            if cs_details:
+                # Pass the store details to the template
+                return render_template('/admin/cs/response.html', username=username, role=role, cs=cs_details, image=image, access=access)
+            else:
+                # Flash an error message when store details are not found
+                flash("Details not found", 'error')
+                return redirect(url_for('admin_cs'))
+
+    # If the user is not logged in or an error occurs, redirect to the index page
+    return redirect(url_for('index'))
+
+
+def admin_get_pdf_buffer(data):
+    pdf_buffer = BytesIO()
+
+    # Create a SimpleDocTemplate with buffer as the file
+    pdf = SimpleDocTemplate(pdf_buffer)
+
+    # Define styles
+    styles = getSampleStyleSheet()
+    header_style = styles['Heading1']
+    normal_style = styles['Normal']
+
+    # Create story (content for the PDF)
+    story = []
+
+    # Add a header
+    header_text = f"Client Service Record - ID: {data['id']}"
+    story.append(Paragraph(header_text, header_style))
+
+    # Add other information with styles
+    story.append(Paragraph(f"Name: {data['name']}", normal_style))
+    story.append(
+        Paragraph(f"Phone Number: {data['phone_number']}", normal_style))
+    story.append(Paragraph(f"Purpose: {data['purpose']}", normal_style))
+    story.append(
+        Paragraph(f"Unique Code: {data['unique_code']}", normal_style))
+    story.append(Paragraph(f"Date Time: {data['date_time']}", normal_style))
+
+    # Build the PDF
+    pdf.build(story)
+
+    # Reset the buffer for reading
+    pdf_buffer.seek(0)
+
+    return pdf_buffer
+
+
+@app.route('/admin_export_response_pdf/<int:id>')
+@login_required(role='ADMIN')
+def admin_export_response_pdf(id):
+    conn, cursor = get_cs_db_connection()
+    cursor.execute("SELECT * FROM cs WHERE id = ?", (id,))
+    cs_details = cursor.fetchone()
+
+    if cs_details:
+        # Get the styled PDF buffer
+        pdf_buffer = get_pdf_buffer(cs_details)
+
+        # Create a Flask response with the PDF content
+        response = Response(pdf_buffer.read())
+        response.headers['Content-Type'] = 'application/pdf'
+        response.headers['Content-Disposition'] = 'inline; filename=cs_data_export.pdf'
+
+        return response
+
+    # If cs_details is None, return an error response (adjust as needed)
+    return "Record not found", 404
+
+
 # Profile
-
-
 @app.route('/admin_profile', methods=['GET', 'POST'])
 @login_required(role='ADMIN')
 def admin_profile():
@@ -3339,7 +4857,8 @@ def admin_profile():
             email = user['email']
             phone = user['phone_number']
             gender = user['gender']
-            image = user['image']  # Retrieve user's image path
+            image = user['image']
+            access = user['access']  # Retrieve user's image path
 
             if request.method == 'POST':
                 # Get data from the form for the tenant
@@ -3382,7 +4901,7 @@ def admin_profile():
 
                 # Redirect to the home page after submission
                 return redirect(url_for('admin_profile'))
-            return render_template('/admin/profile.html', username=username, role=role, password=password, email=email, phone=phone, gender=gender, image=image)  # noqa
+            return render_template('admin/profile/profile.html', username=username, role=role, password=password, email=email, phone=phone, gender=gender, image=image, access=access)  # noqa
 
     # If the user is not logged in or an error occurs, redirect to the index page
     return redirect(url_for('index'))
@@ -3399,10 +4918,16 @@ def admin_back():
         return redirect(url_for('admin_asset'))
     elif 'stores' in referrer:
         return redirect(url_for('admin_stores'))
+    elif 'sms' in referrer:
+        return redirect(url_for('admin_sms'))
+    elif 'artisan' in referrer:
+        return redirect(url_for('admin_artisan'))
+    elif 'cs' in referrer:
+        return redirect(url_for('admin_cs'))
     # Add more conditions for other routes as needed
     else:
         # Default to redirecting to the index page if none of the conditions match
-        return redirect(url_for('admin_stores'))
+        return redirect(url_for('index'))
 
 
 # ------------------------------------------------------------------------------Data Entry---------------------------------------------------------------------------------
@@ -3746,7 +5271,6 @@ def staff_asset_add():
                 flash("Asset Successfully Added")
 
                 return redirect('staff_asset')
-
             # Render the template with username and role
             return render_template('data_entry/asset/add-assets-form/assets-form.html', username=username, role=role, image=image)
 
@@ -4053,6 +5577,314 @@ def staff_add_artisan():
     # If the user is not logged in or an error occurs, redirect to the index page
     return redirect(url_for('index'))
 
+
+# Report Management Unit
+@app.route('/staff_rmu')
+@login_required(role='DATA ENTRY')
+def staff_rmu():
+    if 'user_id' in session:
+        user_id = session['user_id']  # Get the user ID from the session
+        # Retrieve user information from the database
+        user = get_user_by_id(user_id)
+
+        conn, cursor = get_rmu_db_connection()
+        cursor.execute("SELECT * FROM rmu")
+        rmu_list = cursor.fetchall()
+        conn.close()
+
+        if user:
+            username = user['username']
+            role = user['role']
+            image = user['image']
+            access = user['access']
+            return render_template('/data_entry/rmu/records/rmu.html', username=username, role=role, rmu=rmu_list, image=image, access=access)  # noqa
+    return redirect(url_for('index'))
+
+
+@app.route('/staff_rmu_search', methods=['GET'])
+@login_required(role='DATA ENTRY')
+def staff_rmu_search():
+
+    if 'user_id' in session:
+        user_id = session['user_id']  # Get the user ID from the session
+        # Retrieve user information from the database
+        user = get_user_by_id(user_id)
+
+        search_query = request.args.get('search')
+        session['search_query'] = search_query
+
+        if not search_query:
+            return redirect(url_for('staff_rmu'))
+
+        # Create the "stores" table if it doesn't exist
+
+        # Fetch data from the "stores" table that matches the search query
+        conn, cursor = get_rmu_db_connection()
+        cursor.execute("SELECT * FROM rmu WHERE subject LIKE ? OR category LIKE ? OR file_number LIKE ? OR received_by LIKE ?",
+                       ('%' + search_query + '%', '%' + search_query + '%', '%' + search_query + '%', '%' + search_query + '%'))
+
+        search_results = cursor.fetchall()
+        conn.close()
+
+        if user:
+            username = user['username']
+            role = user['role']
+            image = user['image']
+            access = user['access']
+            return render_template('/data_entry/rmu/records/rmu.html', username=username, role=role, rmu=search_results, image=image, access=access)  # noqa
+    # If the user is not logged in or an error occurs, redirect to the index page# noqa
+    return redirect(url_for('index'))
+
+
+@app.route('/staff_incomplete_search', methods=['GET'])
+@login_required(role='DATA ENTRY')
+def staff_incomplete_search():
+
+    if 'user_id' in session:
+        user_id = session['user_id']  # Get the user ID from the session
+        # Retrieve user information from the database
+        user = get_user_by_id(user_id)
+
+        search_query = request.args.get('search')
+        session['search_query'] = search_query
+
+        if not search_query:
+            return redirect(url_for('staff_incomplete_rmu'))
+
+        # Create the "stores" table if it doesn't exist
+
+        # Fetch data from the "stores" table that matches the search query
+        conn, cursor = get_rmu_db_connection()
+        cursor.execute("SELECT * FROM rmu WHERE subject LIKE ? OR category LIKE ? OR file_number LIKE ? OR received_by LIKE ?",
+                       ('%' + search_query + '%', '%' + search_query + '%', '%' + search_query + '%', '%' + search_query + '%'))
+
+        search_results = cursor.fetchall()
+        conn.close()
+
+        if user:
+            username = user['username']
+            role = user['role']
+            image = user['image']
+            access = user['access']
+            return render_template('/data_entry/rmu/records/incomplete.html', username=username, role=role, rmu=search_results, image=image, access=access)  # noqa
+    # If the user is not logged in or an error occurs, redirect to the index page# noqa
+    return redirect(url_for('index'))
+
+
+@app.route('/staff_incomplete_rmu')
+@login_required(role='DATA ENTRY')
+def staff_incomplete_rmu():
+    if 'user_id' in session:
+        user_id = session['user_id']  # Get the user ID from the session
+        # Retrieve user information from the database
+        user = get_user_by_id(user_id)
+
+        conn, cursor = get_rmu_db_connection()
+        cursor.execute("SELECT * FROM rmu WHERE status='Incomplete'")
+        rmu_list = cursor.fetchall()
+        conn.close()
+
+        if user:
+            username = user['username']
+            role = user['role']
+            image = user['image']
+            access = user['access']
+            return render_template('/data_entry/rmu/records/incomplete.html', username=username, role=role, rmu=rmu_list, image=image, access=access)  # noqa
+    return redirect(url_for('index'))
+
+
+@app.route('/staff_add_rmu', methods=['GET', 'POST'])
+@login_required(role='DATA ENTRY')
+def staff_add_rmu():
+    if 'user_id' in session:
+        user_id = session['user_id']  # Get the user ID from the session
+        # Retrieve user information from the database
+        user = get_user_by_id(user_id)
+        if user:
+            username = user['username']
+            role = user['role']
+            image = user['image']
+            access = user['access']
+
+            if request.method == 'POST':
+
+                date_received = request.form["date_received"]
+                sent_by = request.form.get("sent_by", None)
+                letter_date = request.form["letter_date"]
+                reference_number = request.form.get("reference_number", None)
+                subject = request.form.get("subject", None)
+                receiving_office = request.form.get("receiving_office", None)
+                received_by = request.form.get("received_by", None)
+                institution_reference = request.form.get(
+                    "institution_reference", None)
+                institution_name = request.form.get(
+                    "institution_name", None)
+                category = request.form["category"]
+                file_number = "None"
+                status = "Incomplete"
+                receiving_officer = "None"
+                copy = request.files["file"]
+
+                copy_filename = secure_filename(
+                    copy.filename)
+                copy_path = os.path.join(
+                    "static/files", copy_filename)
+                copy.save(copy_path)
+
+                conn, cursor = get_rmu_db_connection()
+
+                if category == 'External (Outgoing)':
+                    cursor.execute(
+                        "INSERT INTO rmu (category, received_by, date_recieved, letter_date, subject, our_reference, copy) VALUES (?,?,?,?,?,?,?)",
+                        (category, sent_by, date_received, letter_date,
+                         subject, reference_number, copy_filename)
+                    )
+                    conn.commit()
+
+                elif category == 'Internal (Incoming)':
+                    cursor.execute(
+                        "INSERT INTO rmu (category, date_recieved, letter_date, instituition_name, instituition_reference, received_by, subject, receiving_office, copy, file_number, receiving_officer, status) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)", (
+                            category, date_received, letter_date, institution_name, institution_reference, received_by, subject, receiving_office, copy_filename, file_number, receiving_officer, status)
+                    )
+                    conn.commit()
+
+                flash("Letter Successfully Recorded")
+
+                return redirect(url_for('staff_rmu'))
+
+            # Render the template with username and role
+            return render_template('data_entry/rmu/records/add.html', username=username, role=role, image=image, access=access)
+
+    # If the user is not logged in or an error occurs, redirect to the index page
+    return redirect(url_for('index'))
+
+
+@app.route('/staff_add_rmu_filenumber/<int:id>', methods=['GET', 'POST'])
+@login_required(role='DATA ENTRY')
+def staff_add_rmu_filenumber(id):
+    if 'user_id' in session:
+        user_id = session['user_id']
+        user = get_user_by_id(user_id)
+
+        conn, cursor = get_rmu_db_connection()
+        cursor.execute("SELECT * FROM rmu WHERE id=?", (id,))
+        rmu_details = cursor.fetchone()
+        conn.close()
+
+        if request.method == "POST":
+            file_number = request.form['file_number']
+            status = "Complete"
+
+            conn, cursor = get_rmu_db_connection()
+            cursor.execute(
+                "UPDATE rmu SET file_number=?, status=? WHERE id=?", (file_number, status, id))
+            conn.commit()
+
+            flash("File Number Successfully Added")
+
+            return redirect(url_for('staff_rmu'))
+
+        if user:
+            username = user['username']
+            role = user['role']
+            image = user['image']
+            access = user['access']
+            return render_template('/data_entry/rmu/records/complete.html', username=username, role=role, rmu=rmu_details, image=image, access=access)
+
+    return redirect(url_for('index'))
+
+
+# Notification
+@app.route('/staff_notification')
+@login_required(role='DATA ENTRY')
+def staff_notification():
+    if 'user_id' in session:
+        user_id = session['user_id']  # Get the user ID from the session
+        # Retrieve user information from the database
+        user = get_user_by_id(user_id)
+
+        conn, cursor = get_rmu_db_connection()
+        cursor.execute("SELECT * FROM rmu")
+        rmu_list = cursor.fetchall()
+        conn.close()
+
+        if user:
+            username = user['username']
+            role = user['role']
+            image = user['image']
+            access = user['access']
+            return render_template('/data_entry/rmu/notification/notification.html', username=username, role=role, rmu=rmu_list, image=image, access=access)  # noqa
+    return redirect(url_for('index'))
+
+
+@app.route('/staff_notification_search', methods=['GET'])
+@login_required(role='DATA ENTRY')
+def staff_notification_search():
+
+    if 'user_id' in session:
+        user_id = session['user_id']  # Get the user ID from the session
+        # Retrieve user information from the database
+        user = get_user_by_id(user_id)
+
+        search_query = request.args.get('search')
+        session['search_query'] = search_query
+
+        if not search_query:
+            return redirect(url_for('staff_notification'))
+
+        # Create the "stores" table if it doesn't exist
+
+        # Fetch data from the "stores" table that matches the search query
+        conn, cursor = get_rmu_db_connection()
+        cursor.execute("SELECT * FROM rmu WHERE subject LIKE ? OR category LIKE ? OR file_number LIKE ? OR received_by LIKE ?",
+                       ('%' + search_query + '%', '%' + search_query + '%', '%' + search_query + '%', '%' + search_query + '%'))
+
+        search_results = cursor.fetchall()
+        conn.close()
+
+        if user:
+            username = user['username']
+            role = user['role']
+            image = user['image']
+            access = user['access']
+            return render_template('/data_entry/rmu/notification/notification.html', username=username, role=role, rmu=search_results, image=image, access=access)  # noqa
+    # If the user is not logged in or an error occurs, redirect to the index page# noqa
+    return redirect(url_for('index'))
+
+
+@app.route('/staff_add_rmu_officer/<int:id>', methods=['GET', 'POST'])
+@login_required(role='DATA ENTRY')
+def staff_add_rmu_officer(id):
+    if 'user_id' in session:
+        user_id = session['user_id']
+        user = get_user_by_id(user_id)
+
+        conn, cursor = get_rmu_db_connection()
+        cursor.execute("SELECT * FROM rmu WHERE id=?", (id,))
+        rmu_details = cursor.fetchone()
+        conn.close()
+
+        if request.method == "POST":
+            receiving_officer = request.form['receiving_officer']
+
+            conn, cursor = get_rmu_db_connection()
+            cursor.execute(
+                "UPDATE rmu SET receiving_officer=? WHERE id=?", (receiving_officer, id))
+            conn.commit()
+
+            flash("Name Successfully Added")
+
+            return redirect(url_for('staff_notification'))
+
+        if user:
+            username = user['username']
+            role = user['role']
+            image = user['image']
+            access = user['access']
+            return render_template('/data_entry/rmu/notification/update.html', username=username, role=role, rmu=rmu_details, image=image, access=access)
+
+    return redirect(url_for('index'))
+
 # -----------------------------------------------------------------Export-------------------------------------------------------------------------------------
 
 
@@ -4168,19 +6000,19 @@ def export_excel_asset():
     conn, cursor = get_asset_db_connection()
     cursor.execute('''
             SELECT * FROM asset
-            WHERE department LIKE ? OR unit LIKE ? OR device_name LIKE ? OR division LIKE ? OR officer LIKE ?
-    ''', ('%' + search_query + '%', '%' + search_query + '%', '%' + search_query + '%', '%' + search_query + '%', '%' + search_query + '%'))
+            WHERE department LIKE ? OR unit LIKE ? OR device_name LIKE ? OR division LIKE ?
+    ''', ('%' + search_query + '%', '%' + search_query + '%', '%' + search_query + '%', '%' + search_query + '%'))
     results = cursor.fetchall()
     conn.close()
 
     # Convert the results to a pandas DataFrame
     df_columns = ['ID', 'Department', 'Unit',
-                  'Device Name', 'Device Brand', 'Device Serial Number', 'Device Embosenuit Number', 'Device Status', 'Division', 'Type Of Toner', 'Capacity', 'Date Purchased', 'Officer Incharge', 'Staff']
+                  'Device Name', 'Device Brand', 'Device Serial Number', 'Device Embosenuit Number', 'Device Status', 'Division', 'Type Of Toner', 'Capacity', 'Date Purchased', 'Head Of Department', 'Staff']
     df = pd.DataFrame(results, columns=df_columns)
 
     # Create a BytesIO buffer to save the Excel file
     excel_buffer = BytesIO()
-    df.to_excel(excel_buffer, index=False, sheet_name='Search Results')
+    df.to_excel(excel_buffer, index=False, sheet_name='Asset Data')
 
     # Set the buffer's position to the beginning
     excel_buffer.seek(0)
@@ -4188,7 +6020,7 @@ def export_excel_asset():
     # Return the Excel file as a downloadable attachment
     return send_file(
         excel_buffer,
-        download_name='search_results.xlsx',
+        download_name='asset.xlsx',
         as_attachment=True,
         mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
     )

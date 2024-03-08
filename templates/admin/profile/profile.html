@@ -11,7 +11,7 @@ Profile
     </div>
     <form action="{{ url_for('admin_profile') }}" method="post" enctype="multipart/form-data">
         <div class="image-container">
-            <img src="{{ url_for('static', filename='images/' + image) if image else url_for('static', filename='images/STMA Logo.jpg') }}" alt="Profile Image" class="imagee">
+            <img src="{{ url_for('static', filename='images/' + image) if image else url_for('static', filename='images/user.jpg') }}" alt="Profile Image" class="imagee">
             <input type="file" name="image" id="image" accept="image/*">
             <label for="image" class="custom-file-upload">Upload Image</label>
         </div>        

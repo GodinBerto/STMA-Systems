@@ -1,5 +1,7 @@
-{% extends '/admin/base.html' %} {% block heading %} Stores {% endblock %} {%
-block content %}
+{% extends '/admin/base.html' %} {% block heading %} Store Rent {% endblock %}
+
+<!-------------------- Flash Message ------------------------->
+{% block content %}
 <div class="content-container">
   <div class="head">
     <h1>Store Registration</h1>
@@ -29,9 +31,9 @@ block content %}
             <label>Store Size <span>*</span></label>
             <select name="size" id="size" required>
               <option value="" selected></option>
-              <option value="small">Small</option>
-              <option value="medium">Medium</option>
-              <option value="large">Large</option>
+              <option value="Small">Small</option>
+              <option value="Medium">Medium</option>
+              <option value="Large">Large</option>
             </select>
           </div>
         </div>
@@ -131,75 +133,6 @@ block content %}
           <input
             type="text"
             name="t_house_number"
-            id="house-number"
-            placeholder="House Number" />
-        </div>
-      </div>
-    </div>
-
-    <div class="store-detail">
-      <h2>Occupant Detail</h2>
-      <div>
-        <div class="details-input">
-          <label>Full Name <span>*</span></label>
-          <input
-            type="text"
-            name="o_fullname"
-            id="name"
-            placeholder="Full Name"
-            required />
-        </div>
-      </div>
-      <div>
-        <div class="details-input">
-          <label>Tel Number <span>*</span></label>
-          <input
-            type="number"
-            name="o_telnumber"
-            id="telnumber"
-            placeholder="Tel Number"
-            required />
-        </div>
-        <div class="details-input">
-          <label>Gender <span>*</span></label>
-          <select name="o_gender" id="gender" required>
-            <option value="" selected></option>
-            <option value="Male">Male</option>
-            <option value="Female">Female</option>
-          </select>
-        </div>
-        <div class="details-input">
-          <label>Date Of Birth <span>*</span></label>
-          <input
-            type="date"
-            name="o_birth"
-            id="birth"
-            placeholder="Date Of Birth"
-            required />
-        </div>
-      </div>
-      <div>
-        <div class="details-input">
-          <label>Photo</label>
-          <input type="file" name="o_image" id="image" accept="image/*" />
-        </div>
-      </div>
-      <div>
-        <div class="details-input">
-          <label>National Identification Card Number</label>
-          <input
-            type="text"
-            name="o_id_number"
-            id="id_number"
-            placeholder="ID Card Number" />
-        </div>
-      </div>
-      <div>
-        <div class="details-input">
-          <label>House Number <span class="opt">(Optional)</span></label>
-          <input
-            type="text"
-            name="o_house_number"
             id="house-number"
             placeholder="House Number" />
         </div>

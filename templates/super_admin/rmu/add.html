@@ -1,0 +1,137 @@
+{% extends '/super_admin/base.html' %} {% block heading %} Recordss Management
+Unit {% endblock %} {% block content %}
+<div class="content-container">
+  <div class="head">
+    <h1>Record Letter</h1>
+  </div>
+  <form
+    action="{{ url_for('add_rmu') }}"
+    method="post"
+    enctype="multipart/form-data">
+    <div class="store-detail">
+      <h2>Letter Details</h2>
+      <div class="details-input">
+        <label>Category <span class="hash">*</span></label>
+        <select name="category" id="category" required>
+          <option value="" selected></option>
+          <option value="Internal (Incoming)">Internal (Incoming)</option>
+          <option value="External (Outgoing)">External (Outgoing)</option>
+        </select>
+      </div>
+    </div>
+
+    <div id="dynamicForm"></div>
+
+    <div class="input-submit">
+      <input type="submit" value="Submit" />
+    </div>
+  </form>
+</div>
+
+<script>
+  const dynamicForm = document.getElementById("dynamicForm");
+  const category = document.getElementById("category");
+
+  category.addEventListener("change", () => {
+    const categoryValue = category.value;
+
+    dynamicForm.innerHTML = "";
+
+    if (categoryValue === "Internal (Incoming)") {
+      dynamicForm.innerHTML = `
+      <div>
+        <div class="details-input">
+          <label>Date OF Letter <span class="hash">*</span></label>
+          <input type="date" name="letter_date" id="letter_date" required />
+        </div>
+  
+        <div class="details-input">
+          <label>Date Received <span class="hash">*</span></label>
+          <input type="date" name="date_received" id="date_received" required />
+        </div>
+  
+        <div class="details-input">
+          <label>Name Of Institution <span class="hash">*</span></label>
+          <input
+            type="text"
+            name="institution_name"
+            id="institution_name"
+            required />
+        </div>
+  
+        <div class="details-input">
+          <label>Institutional Reference <span class="hash">*</span></label>
+          <input
+            type="text"
+            name="institution_reference"
+            id="institution_reference"
+            required />
+        </div>
+  
+        <div class="details-input">
+          <label>To Whom Received <span class="hash">*</span></label>
+          <input type="text" name="received_by" id="received_by" required />
+        </div>
+  
+        <div class="details-input">
+          <label>Subject Of Letter <span class="hash">*</span></label>
+          <input type="text" name="subject" id="subject" required />
+        </div>
+  
+        <div class="details-input">
+          <label>Receiving Office <span class="hash">*</span></label>
+          <select name="receiving_office" id="receiving_office" required>
+            <option value="" selected></option>
+            <option value="MCD">MCD</option>
+            <option value="MCE">MCE</option>
+          </select>
+        </div>
+  
+        <div class="details-input">
+          <label>Upload Softcopy <span class="hash">*</span></label>
+          <input type="file" name="file" id="file" accept="file/*" required />
+        </div>
+      </div>
+      `;
+    } else if (categoryValue === "External (Outgoing)") {
+      dynamicForm.innerHTML = `
+      <div>
+        <div class="details-input">
+          <label>Date Received <span class="hash">*</span></label>
+          <input type="date" name="date_received" id="date_received" required />
+        </div>
+  
+        <div class="details-input">
+          <label>To Whom Sent <span class="hash">*</span></label>
+          <input type="text" name="sent_by" id="sent_by" required />
+        </div>
+  
+        <div class="details-input">
+          <label>Dtae OF Letter <span class="hash">*</span></label>
+          <input type="date" name="letter_date" id="letter_date" required />
+        </div>
+  
+        <div class="details-input">
+          <label>Our Reference Number <span class="hash">*</span></label>
+          <input
+            type="number"
+            name="reference_number"
+            id="reference_number"
+            required />
+        </div>
+  
+        <div class="details-input">
+          <label>Subject Of Letter <span class="hash">*</span></label>
+          <input type="text" name="subject" id="subject" required />
+        </div>
+  
+        <div class="details-input">
+          <label>Upload Softcopy <span class="hash">*</span></label>
+          <input type="file" name="file" id="file" accept="file/*" required />
+        </div>
+      </div>
+      `;
+    }
+  });
+</script>
+{% endblock %}

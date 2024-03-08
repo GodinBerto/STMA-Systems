@@ -1,0 +1,67 @@
+{% extends '/data_entry/rmu/base.html' %} {% block heading %} Records Management
+Unit {% endblock %} {% block content %}
+
+<!----------------------Search------------------------>
+<div class="search-container">
+  <form
+    class="search"
+    action="{{url_for ('staff_incomplete_search')}}"
+    method="GET">
+    <input type="search" name="search" id="search" placeholder="Search" />
+    <input type="submit" value="Search" />
+  </form>
+</div>
+
+<!-- ================ Order Details List ================= -->
+<div class="details">
+  <div class="recentOrders">
+    <div class="cardHeader">
+      <h2>Incomplete Records</h2>
+    </div>
+
+    <table>
+      <thead>
+        <tr>
+          <td>ID</td>
+          <td>Subject</td>
+          <td>Name Of Institution</td>
+          <td>Date On Letter</td>
+          <td>To Whom Receievd</td>
+          <td>File Number</td>
+          <td>Action</td>
+        </tr>
+      </thead>
+
+      <tbody>
+        {% for rmus in rmu %}
+        <tr>
+          <td>{{rmus.id}}</td>
+          <td>{{rmus.subject}}</td>
+          <td>{{rmus.instituition_name}}</td>
+          <td>{{rmus.letter_date}}</td>
+          <td>{{rmus.received_by}}</td>
+          <td>{{rmus.file_number}}</td>
+          <td class="action">
+            {% if rmus.receiving_officer != 'None' %}
+            <a
+              href="{{ url_for('staff_add_rmu_filenumber', id=rmus.id) }}"
+              class="complete"
+              >Complete</a
+            >
+            {% endif %}
+          </td>
+          <td>
+            {% if rmus.file_number == 'None' and rmus.receiving_officer ==
+            "None" %}
+            <div class="status-red"></div>
+            {% elif rmus.file_number == 'None' %}
+            <div class="status-yellow"></div>
+            {% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

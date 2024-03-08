@@ -1,0 +1,30 @@
+{% extends '/super_admin/base.html' %} {% block heading %} Recordss Management
+Unit {% endblock %} {% block content %}
+<div class="content-container">
+  <div class="head">
+    <h1>Add File Number</h1>
+  </div>
+  <form
+    action="{{ url_for('add_rmu_officer', id=rmu.id) }}"
+    method="post"
+    enctype="multipart/form-data">
+    <div class="store-detail">
+      <h2>Add Your Details</h2>
+    </div>
+    <div>
+      <div class="details-input">
+        <label>Receiving Officer <span class="hash">*</span></label>
+        <input
+          type="text"
+          name="receiving_officer"
+          placeholder="Type Here"
+          id="receiving_officer" />
+      </div>
+    </div>
+
+    <div class="input-submit">
+      <input type="submit" value="Submit" />
+    </div>
+  </form>
+</div>
+{% endblock %}

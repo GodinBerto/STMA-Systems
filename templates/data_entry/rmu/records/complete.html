@@ -1,0 +1,111 @@
+{% extends '/data_entry/rmu/base.html' %} {% block heading %} Recordss
+Management Unit {% endblock %} {% block content %}
+<div class="content-container">
+  <div class="head">
+    <h1>Add File Number</h1>
+  </div>
+  <form
+    action="{{ url_for('staff_add_rmu_filenumber', id=rmu.id) }}"
+    method="post"
+    enctype="multipart/form-data">
+    <div class="store-detail">
+      <h2>Letter Details</h2>
+      <div class="details-input">
+        <label>Category <span class="hash">*</span></label>
+        <input
+          type="text"
+          name="category"
+          id="category"
+          value="{{ rmu.category }}"
+          readonly />
+      </div>
+    </div>
+
+    <div>
+      <div class="details-input">
+        <label>Date OF Letter <span class="hash">*</span></label>
+        <input
+          type="date"
+          name="letter_date"
+          id="letter_date"
+          value="{{ rmu.letter_date }}"
+          readonly />
+      </div>
+
+      <div class="details-input">
+        <label>Date Received <span class="hash">*</span></label>
+        <input
+          type="date"
+          name="date_received"
+          id="date_received"
+          value="{{ rmu.date_recieved }}"
+          readonly />
+      </div>
+
+      <div class="details-input">
+        <label>Name Of Institution <span class="hash">*</span></label>
+        <input
+          type="text"
+          name="institution_name"
+          id="institution_name"
+          value="{{ rmu.instituition_name }}"
+          readonly />
+      </div>
+
+      <div class="details-input">
+        <label>Institutional Reference <span class="hash">*</span></label>
+        <input
+          type="text"
+          name="institution_reference"
+          id="institution_reference"
+          value="{{ rmu.instituition_reference }}"
+          readonly />
+      </div>
+
+      <div class="details-input">
+        <label>To Whom Received <span class="hash">*</span></label>
+        <input
+          type="text"
+          name="received_by"
+          id="received_by"
+          readonly
+          value="{{ rmu.received_by }}" />
+      </div>
+
+      <div class="details-input">
+        <label>Subject Of Letter <span class="hash">*</span></label>
+        <input
+          type="text"
+          name="subject"
+          id="subject"
+          value="{{ rmu.Subject }}"
+          readonly />
+      </div>
+
+      <div class="details-input">
+        <label>Receiving Office <span class="hash">*</span></label>
+        <input
+          type="text"
+          name="receiving_office"
+          id="receiving_office"
+          value="{{ rmu.receiving_office }}"
+          readonly />
+      </div>
+
+      <div class="details-input">
+        <label>File Number <span class="hash">*</span></label>
+        <input
+          type="text"
+          style="background-color: rgb(220, 255, 220)"
+          name="file_number"
+          placeholder="Type Here"
+          id="file_number" />
+      </div>
+    </div>
+
+    <div class="input-submit">
+      <input type="submit" value="Submit" />
+    </div>
+  </form>
+</div>
+{% endblock %}
